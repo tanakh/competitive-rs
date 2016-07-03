@@ -121,6 +121,8 @@ pub mod modulo {
         }
     }
 
+    // Assign ops requires >= rustc 1.8
+
     // impl ops::AddAssign for Int {
     //     fn add_assign(&mut self, rhs: Int) {
     //         *self = *self + rhs;
