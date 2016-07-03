@@ -28,9 +28,7 @@ pub mod io {
     def_read!(f64);
 
     impl<T: Read> Read for Vec<T> {
-        fn read(s: &str) -> Self {
-            s.split_whitespace().map(|w| T::read(w)).collect()
-        }
+        fn read(s: &str) -> Self { s.split_whitespace().map(|w| T::read(w)).collect() }
     }
 
     macro_rules! def_read_tuple {
@@ -50,9 +48,7 @@ pub mod io {
     def_read_tuple!(T0, T1, T2, T3);
     def_read_tuple!(T0, T1, T2, T3, T4);
 
-    pub fn readln<T: Read>() -> T {
-        T::read(&read_line())
-    }
+    pub fn readln<T: Read>() -> T { T::read(&read_line()) }
 }
 
 pub mod modulo {
@@ -65,15 +61,11 @@ pub mod modulo {
     pub struct Int(i64);
 
     impl fmt::Display for Int {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "{}", self.0)
-        }
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
     }
 
     impl Int {
-        pub fn new(v: i64) -> Int {
-            Int(v % M)
-        }
+        pub fn new(v: i64) -> Int { Int(v % M) }
 
         pub fn pow(self, mut r: i64) -> Int {
             let mut k = self;
@@ -91,34 +83,24 @@ pub mod modulo {
         }
 
         // This requires M is prime
-        pub fn recip(self) -> Int {
-            self.pow(M - 2)
-        }
+        pub fn recip(self) -> Int { self.pow(M - 2) }
     }
 
     impl ops::Add for Int {
         type Output = Int;
-        fn add(self, rhs: Int) -> Int {
-            Int::new(self.0 + rhs.0)
-        }
+        fn add(self, rhs: Int) -> Int { Int::new(self.0 + rhs.0) }
     }
     impl ops::Sub for Int {
         type Output = Int;
-        fn sub(self, rhs: Int) -> Int {
-            Int::new(self.0 - rhs.0 + M)
-        }
+        fn sub(self, rhs: Int) -> Int { Int::new(self.0 - rhs.0 + M) }
     }
     impl ops::Mul for Int {
         type Output = Int;
-        fn mul(self, rhs: Int) -> Int {
-            Int::new(self.0 * rhs.0)
-        }
+        fn mul(self, rhs: Int) -> Int { Int::new(self.0 * rhs.0) }
     }
     impl ops::Div for Int {
         type Output = Int;
-        fn div(self, rhs: Int) -> Int {
-            self * rhs.recip()
-        }
+        fn div(self, rhs: Int) -> Int { self * rhs.recip() }
     }
 
     // Assign ops requires >= rustc 1.8
@@ -146,15 +128,11 @@ pub mod modulo {
 
     impl ops::Neg for Int {
         type Output = Int;
-        fn neg(self) -> Int {
-            Int(0) - self
-        }
+        fn neg(self) -> Int { Int(0) - self }
     }
 
     impl ::io::Read for Int {
-        fn read(s: &str) -> Int {
-            Int::new(i64::read(s))
-        }
+        fn read(s: &str) -> Int { Int::new(i64::read(s)) }
     }
 }
 
@@ -164,9 +142,7 @@ pub mod union_find {
     pub struct UnionFind(Vec<usize>);
 
     impl UnionFind {
-        pub fn new(n: usize) -> UnionFind {
-            UnionFind(Vec::from_iter(0..n))
-        }
+        pub fn new(n: usize) -> UnionFind { UnionFind(Vec::from_iter(0..n)) }
 
         pub fn find(&mut self, i: usize) -> usize {
             if self.0[i] == i {
