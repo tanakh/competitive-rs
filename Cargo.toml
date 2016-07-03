@@ -1,0 +1,6 @@
+[package]
+name = "competitive"
+version = "0.1.0"
+authors = ["Hideyuki Tanaka <tanaka.hideyuki@gmail.com>"]
+
+[dependencies]
