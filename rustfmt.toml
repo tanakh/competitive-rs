@@ -1,0 +1,4 @@
+fn_single_line = true
+reorder_imports = true
+single_line_if_else = true
+tab_spaces = 4
