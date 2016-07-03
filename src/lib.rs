@@ -158,9 +158,50 @@ pub mod modulo {
     }
 }
 
+pub mod union_find {
+    use std::iter::FromIterator;
+
+    pub struct UnionFind(Vec<usize>);
+
+    impl UnionFind {
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind(Vec::from_iter(0..n))
+        }
+
+        pub fn find(&mut self, i: usize) -> usize {
+            if self.0[i] == i {
+                i
+            } else {
+                let p = self.0[i];
+                self.0[i] = self.find(p);
+                self.0[i]
+            }
+        }
+
+        pub fn union(&mut self, i: usize, j: usize) {
+            let ni = self.find(i);
+            let nj = self.find(j);
+            self.0[ni] = nj;
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn it_works() {}
+    fn union_find_test() {
+        use union_find::UnionFind;
+
+        let mut uf = UnionFind::new(5);
+        uf.union(0, 1);
+        uf.union(2, 3);
+        uf.union(0, 4);
+
+        assert!(uf.find(0) == uf.find(1));
+        assert!(uf.find(2) == uf.find(3));
+        assert!(uf.find(0) == uf.find(4));
+        assert!(uf.find(1) == uf.find(4));
+        assert!(uf.find(0) != uf.find(2));
+        assert!(uf.find(3) != uf.find(4));
+    }
 }
