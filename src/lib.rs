@@ -25,7 +25,12 @@ pub mod io {
     def_read!(i64);
     def_read!(isize);
     def_read!(usize);
+    def_read!(f32);
     def_read!(f64);
+
+    impl Read for String {
+        fn read(s: &str) -> Self { s.to_string() }
+    }
 
     impl<T: Read> Read for Vec<T> {
         fn read(s: &str) -> Self { s.split_whitespace().map(|w| T::read(w)).collect() }
@@ -35,9 +40,8 @@ pub mod io {
         ($($t: ident),*) => {
             impl<$($t : Read + Default),*> Read for ($($t),*) {
                 fn read(s: &str) -> Self {
-                    let ws = s.split_whitespace().collect::<Vec<_>>();
-                    let mut i = 0;
-                    ( $({i += 1; $t::read(ws[i - 1])}),* )
+                    let mut iter = s.split_whitespace();
+                    ( $($t::read(iter.next().unwrap())),* )
                 }
             }
         };
@@ -48,12 +52,16 @@ pub mod io {
     def_read_tuple!(T0, T1, T2, T3);
     def_read_tuple!(T0, T1, T2, T3, T4);
 
-    pub fn readln<T: Read>() -> T { T::read(&read_line()) }
+    pub fn readln<T: Read>() -> T {
+        let mut s = String::new();
+        io::stdin().read_line(&mut s).unwrap();
+        T::read(s.trim())
+    }
 }
 
 pub mod modulo {
-    use std::ops;
     use std::fmt;
+    use std::ops;
 
     const M: i64 = 1000000007;
 
@@ -165,6 +173,26 @@ pub mod union_find {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn read_rest() {
+        use io::Read;
+        assert_eq!(i32::read("123"), 123);
+        assert_eq!(i64::read("123"), 123);
+        assert_eq!(f32::read("3.14"), 3.14);
+        assert_eq!(f64::read("3.14"), 3.14);
+
+        assert_eq!(Vec::<i32>::read("1 2 3"), vec![1, 2, 3]);
+
+        assert_eq!(<(i32, i32)>::read("1 2"), (1, 2));
+        assert_eq!(<(i32, i32, i32)>::read("1 2 3"), (1, 2, 3));
+        assert_eq!(<(i32, i32, i32, i32)>::read("1 2 3 4"), (1, 2, 3, 4));
+        assert_eq!(<(i32, i32, i32, i32, i32)>::read("1 2 3 4 5"),
+                   (1, 2, 3, 4, 5));
+
+        assert_eq!(<(i64, String, f64)>::read("10000000000000000 Hello 1.414"),
+                   (10000000000000000, "Hello".to_owned(), 1.414));
+    }
+
+    #[test]
     fn union_find_test() {
         use union_find::UnionFind;
 
@@ -173,11 +201,11 @@ mod tests {
         uf.union(2, 3);
         uf.union(0, 4);
 
-        assert!(uf.find(0) == uf.find(1));
-        assert!(uf.find(2) == uf.find(3));
-        assert!(uf.find(0) == uf.find(4));
-        assert!(uf.find(1) == uf.find(4));
-        assert!(uf.find(0) != uf.find(2));
-        assert!(uf.find(3) != uf.find(4));
+        assert_eq!(uf.find(0), uf.find(1));
+        assert_eq!(uf.find(2), uf.find(3));
+        assert_eq!(uf.find(0), uf.find(4));
+        assert_eq!(uf.find(1), uf.find(4));
+        assert_ne!(uf.find(0), uf.find(2));
+        assert_ne!(uf.find(3), uf.find(4));
     }
 }
