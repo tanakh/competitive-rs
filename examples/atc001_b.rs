@@ -2,8 +2,12 @@ extern crate competitive;
 use competitive::*;
 
 fn main() {
-    let (n, q): (usize, usize) = io::readln();
-    let qs: Vec<(i32, usize, usize)> = (0..q).map(|_| io::readln()).collect();
+    let ss = io::read_string();
+    let mut sc = io::Scanner::new(&ss);
+    let n: usize = sc.next();
+    let q: usize = sc.next();
+
+    let qs: Vec<(i32, usize, usize)> = (0..q).map(|_| (sc.next(), sc.next(), sc.next())).collect();
 
     let mut uf = union_find::UnionFind::new(n);
     for (p, a, b) in qs {

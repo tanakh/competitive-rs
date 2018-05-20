@@ -1,83 +1,158 @@
 pub mod io {
-    use std::io;
+    use std;
+    use std::str::FromStr;
 
-    pub fn read_line() -> String {
-        let mut s = String::new();
-        io::stdin().read_line(&mut s).unwrap();
-        s.trim_right().to_owned()
+    pub struct Scanner<'a> {
+        iter: std::str::SplitWhitespace<'a>,
     }
 
-    pub trait Read {
-        fn read(s: &str) -> Self;
-    }
-
-    macro_rules! def_read {
-        ($t: ty) => {
-            impl Read for $t {
-                fn read(s: &str) -> $t {
-                    s.parse().unwrap()
-                }
+    impl<'a> Scanner<'a> {
+        pub fn new(s: &'a str) -> Scanner<'a> {
+            Scanner {
+                iter: s.split_whitespace(),
             }
+        }
+
+        pub fn next<T: FromStr>(&mut self) -> T {
+            let s = self.iter.next().unwrap();
+            if let Ok(v) = s.parse::<T>() {
+                v
+            } else {
+                panic!("Parse error")
+            }
+        }
+
+        pub fn next_vec_len<T: FromStr>(&mut self) -> Vec<T> {
+            let n: usize = self.next();
+            self.next_vec(n)
+        }
+
+        pub fn next_vec<T: FromStr>(&mut self, n: usize) -> Vec<T> {
+            (0..n).map(|_| self.next()).collect()
         }
     }
 
-    def_read!(i32);
-    def_read!(i64);
-    def_read!(isize);
-    def_read!(usize);
-    def_read!(f32);
-    def_read!(f64);
+    pub fn read_string() -> String {
+        use std::io::Read;
 
-    impl Read for String {
-        fn read(s: &str) -> Self { s.to_string() }
-    }
-
-    impl<T: Read> Read for Vec<T> {
-        fn read(s: &str) -> Self { s.split_whitespace().map(|w| T::read(w)).collect() }
-    }
-
-    macro_rules! def_read_tuple {
-        ($($t: ident),*) => {
-            impl<$($t : Read + Default),*> Read for ($($t),*) {
-                fn read(s: &str) -> Self {
-                    let mut iter = s.split_whitespace();
-                    ( $($t::read(iter.next().unwrap())),* )
-                }
-            }
-        };
-    }
-
-    def_read_tuple!(T0, T1);
-    def_read_tuple!(T0, T1, T2);
-    def_read_tuple!(T0, T1, T2, T3);
-    def_read_tuple!(T0, T1, T2, T3, T4);
-
-    pub fn readln<T: Read>() -> T {
         let mut s = String::new();
-        io::stdin().read_line(&mut s).unwrap();
-        T::read(s.trim())
+        std::io::stdin().read_to_string(&mut s).unwrap();
+        s
+    }
+
+    pub fn read_line() -> String {
+        let mut s = String::new();
+        std::io::stdin().read_line(&mut s).unwrap();
+        s.trim_right().to_owned()
     }
 }
 
-pub mod modulo {
-    use std::fmt;
-    use std::ops;
+pub mod num {
+    use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
+    pub trait NumOps<Rhs = Self, Output = Self>:
+        Add<Rhs, Output = Output>
+        + Sub<Rhs, Output = Output>
+        + Mul<Rhs, Output = Output>
+        + Div<Rhs, Output = Output>
+        + Rem<Rhs, Output = Output>
+        + Neg<Output = Output>
+    {
+}
+
+    impl<T, Rhs, Output> NumOps<Rhs, Output> for T
+    where
+        T: Add<Rhs, Output = Output>
+            + Sub<Rhs, Output = Output>
+            + Mul<Rhs, Output = Output>
+            + Div<Rhs, Output = Output>
+            + Rem<Rhs, Output = Output>
+            + Neg<Output = Output>,
+    {
+    }
+
+    pub trait Num: PartialEq + NumOps + From<i32> {}
+
+    pub trait Float: Num + Copy + PartialOrd + Neg<Output = Self> {}
+
+    #[derive(PartialEq, Eq, Copy, Clone, Hash, Debug, Default)]
+    pub struct Complex<T> {
+        /// Real portion of the complex number
+        pub re: T,
+        /// Imaginary portion of the complex number
+        pub im: T,
+    }
+
+    impl<T: Clone + Num> Complex<T> {
+        /// Create a new Complex
+        #[inline]
+        pub fn new(re: T, im: T) -> Complex<T> {
+            Complex { re: re, im: im }
+        }
+
+        #[inline]
+        pub fn i() -> Complex<T> {
+            Self::new(0.into(), 1.into())
+        }
+
+        #[inline]
+        pub fn norm_sqr(&self) -> T {
+            self.re.clone() * self.re.clone() + self.im.clone() * self.im.clone()
+        }
+    }
+
+    impl<T: Clone + Num> Complex<T> {
+        /// Returns the complex conjugate. i.e. `re - i im`
+        #[inline]
+        pub fn conj(&self) -> Complex<T> {
+            Complex::new(self.re.clone(), -self.im.clone())
+        }
+
+        /// Returns `1/self`
+        #[inline]
+        pub fn inv(&self) -> Complex<T> {
+            let norm_sqr = self.norm_sqr();
+            Complex::new(
+                self.re.clone() / norm_sqr.clone(),
+                -self.im.clone() / norm_sqr,
+            )
+        }
+    }
+
+    pub fn gcd<T: Num + Copy>(a: T, b: T) -> T {
+        if a % b == 0.into() {
+            a
+        } else {
+            gcd(b, a % b)
+        }
+    }
+
+    pub fn lcm<T: Num + Copy>(a: T, b: T) -> T {
+        let g = gcd(a, b);
+        a / g * b
+    }
+}
+
+pub mod modular {
     const M: i64 = 1000000007;
 
     #[derive(Debug, Clone, Copy, Default, PartialOrd, Ord, PartialEq, Eq)]
-    pub struct Int(i64);
+    pub struct Modular(i64);
 
-    impl fmt::Display for Int {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
+    impl ::std::fmt::Display for Modular {
+        fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            write!(f, "{}", self.0)
+        }
     }
 
-    impl Int {
-        pub fn new(v: i64) -> Int { Int(v % M) }
+    impl Modular {
+        pub fn new(v: i64) -> Modular {
+            Modular(v % M)
+        }
 
-        pub fn pow(self, mut r: i64) -> Int {
+        pub fn pow(self, mut r: i64) -> Modular {
             let mut k = self;
-            let mut ret = Int::new(1);
+            let mut ret = 1.into();
 
             while r > 0 {
                 if r % 2 != 0 {
@@ -91,66 +166,82 @@ pub mod modulo {
         }
 
         // This requires M is prime
-        pub fn recip(self) -> Int { self.pow(M - 2) }
+        pub fn recip(self) -> Modular {
+            self.pow(M - 2)
+        }
     }
 
-    impl ops::Add for Int {
-        type Output = Int;
-        fn add(self, rhs: Int) -> Int { Int::new(self.0 + rhs.0) }
+    use std::ops::*;
+
+    impl<T: Into<Modular>> Add<T> for Modular {
+        type Output = Modular;
+        fn add(self, rhs: T) -> Self::Output {
+            Modular::new(self.0 + rhs.into().0)
+        }
     }
-    impl ops::Sub for Int {
-        type Output = Int;
-        fn sub(self, rhs: Int) -> Int { Int::new(self.0 - rhs.0 + M) }
-    }
-    impl ops::Mul for Int {
-        type Output = Int;
-        fn mul(self, rhs: Int) -> Int { Int::new(self.0 * rhs.0) }
-    }
-    impl ops::Div for Int {
-        type Output = Int;
-        fn div(self, rhs: Int) -> Int { self * rhs.recip() }
+    impl<T: Into<Modular>> AddAssign<T> for Modular {
+        fn add_assign(&mut self, rhs: T) {
+            *self = *self + rhs;
+        }
     }
 
-    // Assign ops requires >= rustc 1.8
-
-    // impl ops::AddAssign for Int {
-    //     fn add_assign(&mut self, rhs: Int) {
-    //         *self = *self + rhs;
-    //     }
-    // }
-    // impl ops::SubAssign for Int {
-    //     fn sub_assign(&mut self, rhs: Int) {
-    //         *self = *self - rhs;
-    //     }
-    // }
-    // impl ops::MulAssign for Int {
-    //     fn mul_assign(&mut self, rhs: Int) {
-    //         *self = *self * rhs;
-    //     }
-    // }
-    // impl ops::DivAssign for Int {
-    //     fn div_assign(&mut self, rhs: Int) {
-    //         *self = *self / rhs;
-    //     }
-    // }
-
-    impl ops::Neg for Int {
-        type Output = Int;
-        fn neg(self) -> Int { Int(0) - self }
+    impl<T: Into<Modular>> Sub<T> for Modular {
+        type Output = Modular;
+        fn sub(self, rhs: T) -> Self::Output {
+            Modular::new(self.0 - rhs.into().0 + M)
+        }
+    }
+    impl<T: Into<Modular>> SubAssign<T> for Modular {
+        fn sub_assign(&mut self, rhs: T) {
+            *self = *self - rhs;
+        }
     }
 
-    impl ::io::Read for Int {
-        fn read(s: &str) -> Int { Int::new(i64::read(s)) }
+    impl<T: Into<Modular>> Mul<T> for Modular {
+        type Output = Modular;
+        fn mul(self, rhs: T) -> Self::Output {
+            Modular::new(self.0 * rhs.into().0)
+        }
+    }
+    impl<T: Into<Modular>> MulAssign<T> for Modular {
+        fn mul_assign(&mut self, rhs: T) {
+            *self = *self * rhs;
+        }
+    }
+
+    impl<T: Into<Modular>> Div<T> for Modular {
+        type Output = Modular;
+        fn div(self, rhs: T) -> Self::Output {
+            self * rhs.into().recip()
+        }
+    }
+    impl<T: Into<Modular>> DivAssign<T> for Modular {
+        fn div_assign(&mut self, rhs: T) {
+            *self = *self / rhs;
+        }
+    }
+
+    impl Neg for Modular {
+        type Output = Modular;
+        fn neg(self) -> Self::Output {
+            Modular(0) - self
+        }
+    }
+
+    impl<T: ::std::convert::Into<i64>> ::std::convert::From<T> for Modular {
+        fn from(v: T) -> Self {
+            Modular::new(v.into())
+        }
     }
 }
 
 pub mod union_find {
-    use std::iter::FromIterator;
-
     pub struct UnionFind(Vec<usize>);
 
     impl UnionFind {
-        pub fn new(n: usize) -> UnionFind { UnionFind(Vec::from_iter(0..n)) }
+        pub fn new(n: usize) -> UnionFind {
+            UnionFind((0..n).collect())
+        }
 
         pub fn find(&mut self, i: usize) -> usize {
             if self.0[i] == i {
@@ -173,23 +264,29 @@ pub mod union_find {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn read_rest() {
-        use io::Read;
-        assert_eq!(i32::read("123"), 123);
-        assert_eq!(i64::read("123"), 123);
-        assert_eq!(f32::read("3.14"), 3.14);
-        assert_eq!(f64::read("3.14"), 3.14);
+    fn scanner_test() {
+        use io::Scanner;
 
-        assert_eq!(Vec::<i32>::read("1 2 3"), vec![1, 2, 3]);
+        let mut sc = Scanner::new("1 3.14 Hello");
 
-        assert_eq!(<(i32, i32)>::read("1 2"), (1, 2));
-        assert_eq!(<(i32, i32, i32)>::read("1 2 3"), (1, 2, 3));
-        assert_eq!(<(i32, i32, i32, i32)>::read("1 2 3 4"), (1, 2, 3, 4));
-        assert_eq!(<(i32, i32, i32, i32, i32)>::read("1 2 3 4 5"),
-                   (1, 2, 3, 4, 5));
+        assert_eq!(sc.next::<i32>(), 1);
+        assert_eq!(sc.next::<f64>(), 3.14);
+        assert_eq!(sc.next::<String>(), "Hello");
 
-        assert_eq!(<(i64, String, f64)>::read("10000000000000000 Hello 1.414"),
-                   (10000000000000000, "Hello".to_owned(), 1.414));
+        // let v: Vec<f64> = (0..10).map(|_| sc.next()).collect();
+
+        // let mut sc = Scanner::new("1 2 3 4 5");
+        // let v: Vec<i32> = vec![sc.next(); 5];
+        // println!("{:?}", v);
+    }
+
+    #[test]
+    fn test_modular() {
+        use modular::*;
+
+        let x: Modular = 12345678.into();
+        let y: Modular = 87654321.into();
+        assert_eq!(y * x * x.recip(), y);
     }
 
     #[test]
