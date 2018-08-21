@@ -1,7 +1,111 @@
+/// Input parser.
+///
+/// # Example
+///
+/// ```ignore
+/// n
+/// v_0 v_1 ... v_n-1
+/// ```
+///
+/// This data is parsed by following parser:
+///
+///
+/// ```
+/// # #[macro_use] extern crate competitive;
+/// input!{
+/// # source = "0",
+///     n: usize,
+///     v: [i64; n],
+/// }
+/// ```
+///
+/// # Supported Types
+///
+/// * FromStr types
+/// * `usize1`: 1-origin usize (automatically converted to 0-origin)
+/// * (t1, t2, ..., tn): Tuple
+/// * `[type; len]`: Array of `type` with `len` (has type Vec<type>)
+/// * `chars`: Array of char (converted fron `String`, has type Vec<char>)
+/// * `bytes`: Array of byte (converted fron `String`, has type Vec<u8>)
+///
+#[macro_export]
+// #[snippet(name = "input")]
+macro_rules! input {
+    (source = $s:expr, $($r:tt)*) => {
+        let mut iter = $s.split_whitespace();
+        let mut next = || { iter.next().unwrap() };
+        input_inner!{next, $($r)*}
+    };
+    ($($r:tt)*) => {
+        let stdin = std::io::stdin();
+        let mut bytes = std::io::Read::bytes(std::io::BufReader::new(stdin.lock()));
+        let mut next = move || -> String{
+            bytes
+                .by_ref()
+                .map(|r|r.unwrap() as char)
+                .skip_while(|c|c.is_whitespace())
+                .take_while(|c|!c.is_whitespace())
+                .collect()
+        };
+        input_inner!{next, $($r)*}
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! input_inner {
+    ($next:expr) => {};
+    ($next:expr, ) => {};
+
+    ($next:expr, $var:ident : $t:tt $($r:tt)*) => {
+        let $var = read_value!($next, $t);
+        input_inner!{$next $($r)*}
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! read_value {
+    ($next:expr, ( $($t:tt),* )) => {
+        ( $(read_value!($next, $t)),* )
+    };
+
+    ($next:expr, [ $t:tt ; $len:expr ]) => {
+        (0..$len).map(|_| read_value!($next, $t)).collect::<Vec<_>>()
+    };
+
+    ($next:expr, chars) => {
+        read_value!($next, String).chars().collect::<Vec<char>>()
+    };
+
+    ($next:expr, bytes) => {
+        read_value!($next, String).into_bytes()
+    };
+
+    ($next:expr, usize1) => {
+        read_value!($next, usize) - 1
+    };
+
+    ($next:expr, $t:ty) => {
+        $next().parse::<$t>().expect("Parse error")
+    };
+}
+
 pub mod io {
     use std;
     use std::str::FromStr;
 
+    /// Input scanner
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use competitive::io::*;
+    /// let mut sc = Scanner::new("1 3.14 Hello");
+    /// assert_eq!(sc.next::<i32>(), 1);
+    /// assert_eq!(sc.next::<f64>(), 3.14);
+    /// assert_eq!(sc.next::<String>(), "Hello");
+    /// ```
     pub struct Scanner<'a> {
         iter: std::str::SplitWhitespace<'a>,
     }
@@ -73,7 +177,8 @@ pub mod num {
 
     pub trait Num: PartialEq + NumOps + From<i32> {}
 
-    pub trait Float: Num + Copy + PartialOrd + Neg<Output = Self> {}
+    impl Num for i32 {}
+    impl Num for i64 {}
 
     #[derive(PartialEq, Eq, Copy, Clone, Hash, Debug, Default)]
     pub struct Complex<T> {
@@ -119,14 +224,28 @@ pub mod num {
         }
     }
 
+    /// Greatest common divisor
+    /// # Examples
+    ///
+    /// ```
+    /// # use competitive::num::*;
+    /// assert_eq!(gcd(57, 3), 3)
+    /// ```
     pub fn gcd<T: Num + Copy>(a: T, b: T) -> T {
-        if a % b == 0.into() {
+        if b == 0.into() {
             a
         } else {
             gcd(b, a % b)
         }
     }
 
+    /// Least common multiple
+    /// # Examples
+    ///
+    /// ```
+    /// # use competitive::num::*;
+    /// assert_eq!(lcm(12, 8), 24)
+    /// ```
     pub fn lcm<T: Num + Copy>(a: T, b: T) -> T {
         let g = gcd(a, b);
         a / g * b
@@ -261,23 +380,152 @@ pub mod union_find {
     }
 }
 
+pub mod graph {
+    use std::cmp::min;
+    use std::collections::VecDeque;
+
+    pub fn visit(
+        g: &Vec<Vec<usize>>,
+        v: usize,
+        scc: &mut Vec<Vec<usize>>,
+        s: &mut VecDeque<usize>,
+        ins: &mut Vec<bool>,
+        low: &mut Vec<usize>,
+        num: &mut Vec<usize>,
+        time: usize,
+    ) {
+        low[v] = time;
+        num[v] = time;
+
+        s.push_back(v);
+        ins[v] = true;
+
+        for &e in g[v].iter() {
+            let w = e;
+            if num[w] == 0 {
+                visit(g, w, scc, s, ins, low, num, time + 1);
+                low[v] = min(low[v], low[w]);
+            } else if ins[w] {
+                low[v] = min(low[v], num[w]);
+            }
+        }
+
+        if low[v] == num[v] {
+            let mut c = vec![];
+            loop {
+                let w = s.pop_back().unwrap();
+                ins[w] = false;
+                c.push(w);
+                if v == w {
+                    break;
+                }
+            }
+            scc.push(c);
+        }
+    }
+
+    pub fn strongly_connected_components(g: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
+        let n = g.len();
+
+        let mut num = vec![0; n];
+        let mut low = vec![0; n];
+        let mut s = VecDeque::new();
+        let mut ins = vec![false; n];
+        let mut scc = vec![];
+
+        for u in 0..n {
+            if num[u] == 0 {
+                visit(g, u, &mut scc, &mut s, &mut ins, &mut low, &mut num, 1);
+            }
+        }
+
+        scc
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
-    fn scanner_test() {
-        use io::Scanner;
+    fn input_macro_simple() {
+        input!{
+            source = "1 3.14 Hello",
+            n: usize,
+            f: f64,
+            s: String,
+        }
+        assert_eq!(n, 1);
+        assert_eq!(f, 3.14);
+        assert_eq!(s, "Hello");
+    }
 
-        let mut sc = Scanner::new("1 3.14 Hello");
+    #[test]
+    fn input_macro_vec() {
+        input!{
+            source = "5\n1 2 3 4 5",
+            n: usize,
+            v: [usize; n],
+        }
+        assert_eq!(v, [1, 2, 3, 4, 5]);
+    }
 
-        assert_eq!(sc.next::<i32>(), 1);
-        assert_eq!(sc.next::<f64>(), 3.14);
-        assert_eq!(sc.next::<String>(), "Hello");
+    #[test]
+    fn input_macro_matrix() {
+        input!{
+            source = "3 4\n1 2 3 4\n5 6 7 8\n9 10 11 12",
+            h: usize,
+            w: usize,
+            v: [[usize; w]; h],
+        }
+        assert_eq!(v, [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]);
+    }
 
-        // let v: Vec<f64> = (0..10).map(|_| sc.next()).collect();
+    #[test]
+    fn input_macro_chars() {
+        input!{
+            source = "string",
+            s: chars,
+        }
+        assert_eq!(s, ['s', 't', 'r', 'i', 'n', 'g']);
+    }
 
-        // let mut sc = Scanner::new("1 2 3 4 5");
-        // let v: Vec<i32> = vec![sc.next(); 5];
-        // println!("{:?}", v);
+    #[test]
+    fn input_macro_bytes() {
+        input!{
+            source = "string",
+            s: bytes,
+        }
+        assert_eq!(s, b"string");
+    }
+
+    #[test]
+    fn input_macro_char_matrix() {
+        input!{
+            source = "3 4\n#.#.\n.#.#\n#.#.",
+            h: usize,
+            _w: usize,
+            bd: [chars; h],
+        }
+        assert_eq!(
+            bd,
+            [
+                ['#', '.', '#', '.'],
+                ['.', '#', '.', '#'],
+                ['#', '.', '#', '.']
+            ]
+        );
+    }
+
+    #[test]
+    fn input_macro_missing_comma() {
+        input!{
+            source = "1 3.14 Hello",
+            n: usize,
+            f: f64,
+            s: String // allow missing last comma
+        }
+        assert_eq!(n, 1);
+        assert_eq!(f, 3.14);
+        assert_eq!(s, "Hello");
     }
 
     #[test]

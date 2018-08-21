@@ -1,13 +1,20 @@
 extern crate competitive;
+
+#[macro_use]
 use competitive::*;
 
 fn main() {
-    let ss = io::read_string();
-    let mut sc = io::Scanner::new(&ss);
-    let n: usize = sc.next();
-    let q: usize = sc.next();
+    // let ss = io::read_string();
+    // let mut sc = io::Scanner::new(&ss);
+    // let n: usize = sc.next();
+    // let q: usize = sc.next();
+    // let qs: Vec<(i32, usize, usize)> = (0..q).map(|_| (sc.next(), sc.next(), sc.next())).collect();
 
-    let qs: Vec<(i32, usize, usize)> = (0..q).map(|_| (sc.next(), sc.next(), sc.next())).collect();
+    input!{
+        n: usize,
+        q: usize,
+        qs: [(i32, usize, usize); q],
+    }
 
     let mut uf = union_find::UnionFind::new(n);
     for (p, a, b) in qs {
