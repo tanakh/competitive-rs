@@ -162,16 +162,15 @@ pub mod num {
         + Rem<Rhs, Output = Output>
         + Neg<Output = Output>
     {
-}
+    }
 
-    impl<T, Rhs, Output> NumOps<Rhs, Output> for T
-    where
+    impl<T, Rhs, Output> NumOps<Rhs, Output> for T where
         T: Add<Rhs, Output = Output>
             + Sub<Rhs, Output = Output>
             + Mul<Rhs, Output = Output>
             + Div<Rhs, Output = Output>
             + Rem<Rhs, Output = Output>
-            + Neg<Output = Output>,
+            + Neg<Output = Output>
     {
     }
 
@@ -256,20 +255,20 @@ pub mod modular {
     const M: i64 = 1000000007;
 
     #[derive(Debug, Clone, Copy, Default, PartialOrd, Ord, PartialEq, Eq)]
-    pub struct Modular(i64);
+    pub struct Mod(i64);
 
-    impl ::std::fmt::Display for Modular {
+    impl ::std::fmt::Display for Mod {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             write!(f, "{}", self.0)
         }
     }
 
-    impl Modular {
-        pub fn new(v: i64) -> Modular {
-            Modular(v % M)
+    impl Mod {
+        pub fn new(v: i64) -> Mod {
+            Mod(v % M)
         }
 
-        pub fn pow(self, mut r: i64) -> Modular {
+        pub fn pow(self, mut r: i64) -> Mod {
             let mut k = self;
             let mut ret = 1.into();
 
@@ -285,71 +284,71 @@ pub mod modular {
         }
 
         // This requires M is prime
-        pub fn recip(self) -> Modular {
+        pub fn recip(self) -> Mod {
             self.pow(M - 2)
         }
     }
 
     use std::ops::*;
 
-    impl<T: Into<Modular>> Add<T> for Modular {
-        type Output = Modular;
+    impl<T: Into<Mod>> Add<T> for Mod {
+        type Output = Mod;
         fn add(self, rhs: T) -> Self::Output {
-            Modular::new(self.0 + rhs.into().0)
+            Mod::new(self.0 + rhs.into().0)
         }
     }
-    impl<T: Into<Modular>> AddAssign<T> for Modular {
+    impl<T: Into<Mod>> AddAssign<T> for Mod {
         fn add_assign(&mut self, rhs: T) {
             *self = *self + rhs;
         }
     }
 
-    impl<T: Into<Modular>> Sub<T> for Modular {
-        type Output = Modular;
+    impl<T: Into<Mod>> Sub<T> for Mod {
+        type Output = Mod;
         fn sub(self, rhs: T) -> Self::Output {
-            Modular::new(self.0 - rhs.into().0 + M)
+            Mod::new(self.0 - rhs.into().0 + M)
         }
     }
-    impl<T: Into<Modular>> SubAssign<T> for Modular {
+    impl<T: Into<Mod>> SubAssign<T> for Mod {
         fn sub_assign(&mut self, rhs: T) {
             *self = *self - rhs;
         }
     }
 
-    impl<T: Into<Modular>> Mul<T> for Modular {
-        type Output = Modular;
+    impl<T: Into<Mod>> Mul<T> for Mod {
+        type Output = Mod;
         fn mul(self, rhs: T) -> Self::Output {
-            Modular::new(self.0 * rhs.into().0)
+            Mod::new(self.0 * rhs.into().0)
         }
     }
-    impl<T: Into<Modular>> MulAssign<T> for Modular {
+    impl<T: Into<Mod>> MulAssign<T> for Mod {
         fn mul_assign(&mut self, rhs: T) {
             *self = *self * rhs;
         }
     }
 
-    impl<T: Into<Modular>> Div<T> for Modular {
-        type Output = Modular;
+    impl<T: Into<Mod>> Div<T> for Mod {
+        type Output = Mod;
         fn div(self, rhs: T) -> Self::Output {
             self * rhs.into().recip()
         }
     }
-    impl<T: Into<Modular>> DivAssign<T> for Modular {
+    impl<T: Into<Mod>> DivAssign<T> for Mod {
         fn div_assign(&mut self, rhs: T) {
             *self = *self / rhs;
         }
     }
 
-    impl Neg for Modular {
-        type Output = Modular;
+    impl Neg for Mod {
+        type Output = Mod;
         fn neg(self) -> Self::Output {
-            Modular(0) - self
+            Mod(0) - self
         }
     }
 
-    impl<T: ::std::convert::Into<i64>> ::std::convert::From<T> for Modular {
+    impl<T: ::std::convert::Into<i64>> ::std::convert::From<T> for Mod {
         fn from(v: T) -> Self {
-            Modular::new(v.into())
+            Mod::new(v.into())
         }
     }
 }
@@ -443,11 +442,76 @@ pub mod graph {
     }
 }
 
+pub fn binary_search(mut ok: i64, mut ng: i64, pred: impl Fn(i64) -> bool) -> i64 {
+    while (ok - ng).abs() > 1 {
+        let mi = (ok + ng) / 2;
+        if pred(mi) {
+            ok = mi;
+        } else {
+            ng = mi;
+        }
+    }
+    ok
+}
+
+#[test]
+fn binary_search_test() {
+    let v = [1, 2, 3, 4, 5];
+    assert_eq!(3, binary_search(v.len() as _, -1, |i| v[i as usize] > 3));
+    assert_eq!(5, binary_search(v.len() as _, -1, |i| v[i as usize] > 100));
+    assert_eq!(0, binary_search(v.len() as _, -1, |i| v[i as usize] > 0));
+}
+
+mod inf {
+    use std::cmp::min;
+    use std::ops::Add;
+
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+    pub enum Inf<T> {
+        NotInf(T),
+        Inf,
+    }
+
+    use self::Inf::*;
+
+    impl<T> From<T> for Inf<T> {
+        fn from(v: T) -> Self {
+            Inf::NotInf(v)
+        }
+    }
+
+    impl<T: Add<Output = T>> Add for Inf<T> {
+        type Output = Inf<T>;
+        fn add(self, rhs: Self) -> Self {
+            match (self, rhs) {
+                (NotInf(a), NotInf(b)) => NotInf(a + b),
+                _ => Inf,
+            }
+        }
+    }
+
+    impl<T: Add<Output = T>> Add<T> for Inf<T> {
+        type Output = Inf<T>;
+        fn add(self, rhs: T) -> Self {
+            match self {
+                NotInf(a) => NotInf(a + rhs),
+                _ => Inf,
+            }
+        }
+    }
+
+    impl<T: Clone + Ord> Inf<T> {
+        pub fn min_assign(&mut self, rhs: Self) {
+            *self = min(self.clone(), rhs);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
     fn input_macro_simple() {
-        input!{
+        input! {
             source = "1 3.14 Hello",
             n: usize,
             f: f64,
@@ -460,7 +524,7 @@ mod tests {
 
     #[test]
     fn input_macro_vec() {
-        input!{
+        input! {
             source = "5\n1 2 3 4 5",
             n: usize,
             v: [usize; n],
@@ -470,7 +534,7 @@ mod tests {
 
     #[test]
     fn input_macro_matrix() {
-        input!{
+        input! {
             source = "3 4\n1 2 3 4\n5 6 7 8\n9 10 11 12",
             h: usize,
             w: usize,
@@ -481,7 +545,7 @@ mod tests {
 
     #[test]
     fn input_macro_chars() {
-        input!{
+        input! {
             source = "string",
             s: chars,
         }
@@ -490,7 +554,7 @@ mod tests {
 
     #[test]
     fn input_macro_bytes() {
-        input!{
+        input! {
             source = "string",
             s: bytes,
         }
@@ -499,7 +563,7 @@ mod tests {
 
     #[test]
     fn input_macro_char_matrix() {
-        input!{
+        input! {
             source = "3 4\n#.#.\n.#.#\n#.#.",
             h: usize,
             _w: usize,
@@ -517,7 +581,7 @@ mod tests {
 
     #[test]
     fn input_macro_missing_comma() {
-        input!{
+        input! {
             source = "1 3.14 Hello",
             n: usize,
             f: f64,
@@ -532,8 +596,8 @@ mod tests {
     fn test_modular() {
         use modular::*;
 
-        let x: Modular = 12345678.into();
-        let y: Modular = 87654321.into();
+        let x: Mod = 12345678.into();
+        let y: Mod = 87654321.into();
         assert_eq!(y * x * x.recip(), y);
     }
 
