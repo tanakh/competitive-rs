@@ -1,7 +1,5 @@
-extern crate competitive;
-
-#[macro_use]
-use competitive::*;
+use competitive::prelude::*;
+use competitive::union_find::*;
 
 fn main() {
     // let ss = io::read_string();
@@ -10,13 +8,13 @@ fn main() {
     // let q: usize = sc.next();
     // let qs: Vec<(i32, usize, usize)> = (0..q).map(|_| (sc.next(), sc.next(), sc.next())).collect();
 
-    input!{
+    input! {
         n: usize,
         q: usize,
         qs: [(i32, usize, usize); q],
     }
 
-    let mut uf = union_find::UnionFind::new(n);
+    let mut uf = UnionFind::new(n);
     for (p, a, b) in qs {
         if p == 0 {
             uf.union(a, b);

@@ -2,5 +2,7 @@
 name = "competitive"
 version = "0.1.0"
 authors = ["Hideyuki Tanaka <tanaka.hideyuki@gmail.com>"]
+edition = "2018"
 
 [dependencies]
+proconio = "0.3"

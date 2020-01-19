@@ -1,10 +1,7 @@
-extern crate competitive;
-
-#[macro_use]
-use competitive::*;
+use competitive::prelude::*;
 
 fn main() {
-    input!{
+    input! {
         n: usize,
         v: [usize; n],
     }
