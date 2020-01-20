@@ -5,4 +5,5 @@ authors = ["Hideyuki Tanaka <tanaka.hideyuki@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+num = "0.2"
 proconio = "0.3"

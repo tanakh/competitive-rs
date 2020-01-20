@@ -1,7 +1,7 @@
 use std::cmp::min;
 use std::collections::VecDeque;
 
-pub fn visit(
+fn visit(
     g: &Vec<Vec<usize>>,
     v: usize,
     scc: &mut Vec<Vec<usize>>,
