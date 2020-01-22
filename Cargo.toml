@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["Hideyuki Tanaka <tanaka.hideyuki@gmail.com>"]
 edition = "2018"
 
+[profile.release]
+lto = true
+panic = 'abort'
+
 [dependencies]
+ndarray = "0.13"
 num = "0.2"
 proconio = "0.3"
