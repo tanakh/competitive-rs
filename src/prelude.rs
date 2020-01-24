@@ -11,3 +11,5 @@ pub use proconio::marker::{Bytes, Chars, Isize1, Usize1};
 pub use num::complex::Complex;
 pub use num::integer::{gcd, lcm};
 pub use num::{abs, Num};
+
+pub use crate::def_gf;

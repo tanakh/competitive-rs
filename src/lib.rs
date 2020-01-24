@@ -6,4 +6,5 @@ pub mod kmp;
 pub mod slice;
 pub mod union_find;
 
+#[macro_use]
 pub mod prelude;
