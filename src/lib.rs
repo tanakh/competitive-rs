@@ -1,4 +1,5 @@
 pub mod binary_search;
+pub mod bits;
 pub mod geo;
 pub mod gf;
 pub mod inf;
