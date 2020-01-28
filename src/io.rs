@@ -42,12 +42,14 @@ impl<'a> Scanner<'a> {
     }
 }
 
+/// Read whole stdin content to string
 pub fn read_string() -> String {
     let mut s = String::new();
     std::io::stdin().read_to_string(&mut s).unwrap();
     s
 }
 
+/// Read one line from stdin to string
 pub fn read_line() -> String {
     let mut s = String::new();
     std::io::stdin().read_line(&mut s).unwrap();

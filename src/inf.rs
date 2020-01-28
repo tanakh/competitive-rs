@@ -2,21 +2,21 @@ use std::cmp::min;
 use std::ops::Add;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub enum Inf<T> {
+pub enum MaybeInf<T> {
     NotInf(T),
     Inf,
 }
 
-use self::Inf::*;
+use MaybeInf::*;
 
-impl<T> From<T> for Inf<T> {
+impl<T> From<T> for MaybeInf<T> {
     fn from(v: T) -> Self {
-        Inf::NotInf(v)
+        MaybeInf::NotInf(v)
     }
 }
 
-impl<T: Add<Output = T>> Add for Inf<T> {
-    type Output = Inf<T>;
+impl<T: Add<Output = T>> Add for MaybeInf<T> {
+    type Output = MaybeInf<T>;
     fn add(self, rhs: Self) -> Self {
         match (self, rhs) {
             (NotInf(a), NotInf(b)) => NotInf(a + b),
@@ -25,8 +25,8 @@ impl<T: Add<Output = T>> Add for Inf<T> {
     }
 }
 
-impl<T: Add<Output = T>> Add<T> for Inf<T> {
-    type Output = Inf<T>;
+impl<T: Add<Output = T>> Add<T> for MaybeInf<T> {
+    type Output = MaybeInf<T>;
     fn add(self, rhs: T) -> Self {
         match self {
             NotInf(a) => NotInf(a + rhs),
@@ -35,7 +35,7 @@ impl<T: Add<Output = T>> Add<T> for Inf<T> {
     }
 }
 
-impl<T: Clone + Ord> Inf<T> {
+impl<T: Clone + Ord> MaybeInf<T> {
     pub fn min_assign(&mut self, rhs: Self) {
         *self = min(self.clone(), rhs);
     }
