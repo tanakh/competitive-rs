@@ -6,6 +6,7 @@ pub mod graph;
 pub mod inf;
 pub mod io;
 pub mod kmp;
+pub mod number;
 pub mod prime;
 pub mod slice;
 pub mod union_find;

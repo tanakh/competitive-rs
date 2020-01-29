@@ -1,5 +1,6 @@
 use proconio::marker::Usize1;
 use proconio::source::{Readable, Source};
+use std::collections::VecDeque;
 use std::io::BufRead;
 use std::marker::PhantomData;
 
@@ -87,6 +88,87 @@ impl<IndexType: Readable<Output = usize>> Readable for ListTree<IndexType> {
 
         g
     }
+}
+
+pub type NodeId = usize;
+
+pub trait Graph<'a> {
+    type Iter: Iterator<Item = NodeId>;
+    fn len(&self) -> usize;
+    fn neighbors(&'a self, a: NodeId) -> Self::Iter;
+}
+
+pub type UnweightedGraph = Vec<Vec<usize>>;
+
+pub fn make_undirected_graph(n: usize, edges: &[(usize, usize)]) -> UnweightedGraph {
+    let mut g = vec![vec![]; n];
+    for &(u, v) in edges.iter() {
+        g[u].push(v);
+        g[v].push(u);
+    }
+    g
+}
+
+impl<'a> Graph<'a> for UnweightedGraph {
+    type Iter = std::iter::Cloned<std::slice::Iter<'a, NodeId>>;
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn neighbors(&'a self, a: NodeId) -> Self::Iter {
+        self[a].iter().cloned()
+    }
+}
+
+pub struct Bfs<'a, G: Graph<'a>> {
+    visited: Vec<bool>,
+    q: VecDeque<(usize, Option<usize>)>,
+    g: &'a G,
+}
+
+impl<'a, G: Graph<'a>> Iterator for Bfs<'a, G> {
+    type Item = (NodeId, NodeId);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some((u, prev)) = self.q.pop_front() {
+            for v in self.g.neighbors(u) {
+                if !self.visited[v] {
+                    self.visited[v] = true;
+                    self.q.push_back((v, Some(u)));
+                }
+            }
+
+            if let Some(prev) = prev {
+                Some((prev, u))
+            } else {
+                self.next()
+            }
+        } else {
+            None
+        }
+    }
+}
+
+pub fn bfs<'a, G: Graph<'a>>(g: &'a G, start: NodeId) -> Bfs<'a, G> {
+    let n = g.len();
+    let mut visited = vec![false; n];
+    let mut q = VecDeque::new();
+    visited[start] = true;
+    q.push_back((start, None));
+
+    Bfs { visited, q, g }
+}
+
+/// Returns a vector which stores distances from `start`.
+/// For unreachable node, `usize::MAX` is stored.
+pub fn make_dist_table<'a, G: Graph<'a>>(g: &'a G, start: usize) -> Vec<usize> {
+    let mut dist = vec![std::usize::MAX; g.len()];
+    dist[start] = 0;
+    for (u, v) in bfs(g, start) {
+        dist[v] = dist[u] + 1;
+    }
+    dist
 }
 
 /*
