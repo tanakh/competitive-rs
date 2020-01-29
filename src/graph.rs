@@ -1,6 +1,95 @@
-use std::cmp::min;
-use std::collections::VecDeque;
+use proconio::marker::Usize1;
+use proconio::source::{Readable, Source};
+use std::io::BufRead;
+use std::marker::PhantomData;
 
+/// Read marker for undirected adjacency list graph
+///
+/// The result type is `Vec<Vec<usize>>`
+///
+/// It reads input like below:
+///
+/// ```ignore
+/// n:usize m:usize
+/// u_1:IndexType v_1:IndexType
+/// ...
+/// u_m:IndexType v_m:IndexType
+/// ```
+pub struct ListGraph<IndexType = Usize1>(PhantomData<IndexType>);
+
+impl<IndexType: Readable<Output = usize>> Readable for ListGraph<IndexType> {
+    type Output = Vec<Vec<usize>>;
+
+    fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Self::Output {
+        let n = usize::read(source);
+        let m = usize::read(source);
+        let mut g = vec![vec![]; n];
+
+        for _ in 0..m {
+            let u = IndexType::read(source);
+            let v = IndexType::read(source);
+            g[u].push(v);
+            g[v].push(u);
+        }
+
+        g
+    }
+}
+
+/// Read marker for undirected adjacency matrix graph
+///
+/// The result type is `Vec<Vec<bool>>`
+///
+/// It reads input like below:
+///
+/// ```ignore
+/// n:usize m:usize
+/// u_1:IndexType v_1:IndexType
+/// ...
+/// u_m:IndexType v_m:IndexType
+/// ```
+pub struct MatGraph<IndexType = Usize1>(PhantomData<IndexType>);
+
+impl<IndexType: Readable<Output = usize>> Readable for MatGraph<IndexType> {
+    type Output = Vec<Vec<bool>>;
+
+    fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Self::Output {
+        let n = usize::read(source);
+        let m = usize::read(source);
+        let mut g = vec![vec![false; n]; n];
+
+        for _ in 0..m {
+            let u = IndexType::read(source);
+            let v = IndexType::read(source);
+            g[u][v] = true;
+            g[v][u] = true;
+        }
+
+        g
+    }
+}
+
+pub struct ListTree<IndexType = Usize1>(PhantomData<IndexType>);
+
+impl<IndexType: Readable<Output = usize>> Readable for ListTree<IndexType> {
+    type Output = Vec<Vec<usize>>;
+
+    fn read<R: BufRead, S: Source<R>>(source: &mut S) -> Self::Output {
+        let n = usize::read(source);
+        let mut g = vec![vec![]; n];
+
+        for _ in 0..n - 1 {
+            let u = IndexType::read(source);
+            let v = IndexType::read(source);
+            g[u].push(v);
+            g[v].push(u);
+        }
+
+        g
+    }
+}
+
+/*
 fn visit(
     g: &Vec<Vec<usize>>,
     v: usize,
@@ -58,3 +147,4 @@ pub fn strongly_connected_components(g: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
 
     scc
 }
+*/

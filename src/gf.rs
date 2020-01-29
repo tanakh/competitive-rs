@@ -3,8 +3,7 @@
 macro_rules! def_gf {
     ($p:expr) => {
         mod gf {
-            use num::{Integer, ToPrimitive};
-            use std::convert::{From, Into};
+            use std::convert::{From, Into, TryInto};
             use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
             #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -19,8 +18,8 @@ macro_rules! def_gf {
             }
 
             impl GF {
-                pub fn new<T: Integer + ToPrimitive>(v: T) -> GF {
-                    GF(v.to_u64().unwrap() % P)
+                pub fn new<T: TryInto<i64>>(v: T) -> GF {
+                    GF(v.try_into().ok().unwrap().rem_euclid(P as i64) as u64)
                 }
 
                 pub fn pow(self, mut r: u64) -> GF {
@@ -142,7 +141,7 @@ macro_rules! def_gf {
                 }
             }
 
-            impl<T: Integer + ToPrimitive> From<T> for GF {
+            impl<T: TryInto<i64>> From<T> for GF {
                 fn from(v: T) -> Self {
                     GF::new(v)
                 }

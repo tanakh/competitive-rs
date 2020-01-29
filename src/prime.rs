@@ -121,3 +121,24 @@ fn sum_of_divisors_test() {
     assert_eq!(sum_of_divisors::<usize>(&factor(6)), 12);
     assert_eq!(sum_of_divisors::<usize>(&factor(60)), 168);
 }
+
+/// Returns all divisors of `n`
+pub fn divisors(n: usize) -> Vec<usize> {
+    let fs = factor(n);
+    let mut ret = vec![];
+    gen_divisors(&fs[..], 1, &mut ret);
+    ret
+}
+
+fn gen_divisors(s: &[(usize, usize)], cur: usize, ret: &mut Vec<usize>) {
+    if s.is_empty() {
+        ret.push(cur);
+        return;
+    }
+
+    let mut cur = cur;
+    for _ in 0..=s[0].1 {
+        gen_divisors(&s[1..], cur, ret);
+        cur = cur.wrapping_mul(s[0].0);
+    }
+}
