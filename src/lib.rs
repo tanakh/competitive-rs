@@ -9,6 +9,7 @@ pub mod kmp;
 pub mod prime;
 pub mod slice;
 pub mod union_find;
+pub mod util;
 
 #[macro_use]
 pub mod prelude;
