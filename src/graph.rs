@@ -4,6 +4,8 @@ use std::collections::VecDeque;
 use std::io::BufRead;
 use std::marker::PhantomData;
 
+// Markers
+
 /// Read marker for undirected adjacency list graph
 ///
 /// The result type is `Vec<Vec<usize>>`
@@ -90,15 +92,47 @@ impl<IndexType: Readable<Output = usize>> Readable for ListTree<IndexType> {
     }
 }
 
-pub type NodeId = usize;
+// TODO: Markers for Directed Graph
+// TODO: Markers for Weighted Graph
+// TODO: Markers for Tree described by nth-nodes' parent
+
+//-----
 
 pub trait Graph<'a> {
-    type Iter: Iterator<Item = NodeId>;
+    type NodeId: Copy;
+    type Iter: Iterator<Item = Self::NodeId>;
     fn len(&self) -> usize;
-    fn neighbors(&'a self, a: NodeId) -> Self::Iter;
+    fn index(&self, a: Self::NodeId) -> usize;
+    fn neighbors(&'a self, a: Self::NodeId) -> Self::Iter;
+}
+
+impl<'a> Graph<'a> for UnweightedGraph {
+    type NodeId = usize;
+    type Iter = std::iter::Cloned<std::slice::Iter<'a, Self::NodeId>>;
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn index(&self, a: Self::NodeId) -> usize {
+        a
+    }
+
+    fn neighbors(&'a self, a: Self::NodeId) -> Self::Iter {
+        self[a].iter().cloned()
+    }
 }
 
 pub type UnweightedGraph = Vec<Vec<usize>>;
+pub type WeightedGraph<W> = Vec<Vec<(usize, W)>>;
+
+pub fn make_directed_graph(n: usize, edges: &[(usize, usize)]) -> UnweightedGraph {
+    let mut g = vec![vec![]; n];
+    for &(u, v) in edges.iter() {
+        g[u].push(v);
+    }
+    g
+}
 
 pub fn make_undirected_graph(n: usize, edges: &[(usize, usize)]) -> UnweightedGraph {
     let mut g = vec![vec![]; n];
@@ -109,32 +143,76 @@ pub fn make_undirected_graph(n: usize, edges: &[(usize, usize)]) -> UnweightedGr
     g
 }
 
-impl<'a> Graph<'a> for UnweightedGraph {
-    type Iter = std::iter::Cloned<std::slice::Iter<'a, NodeId>>;
-
-    fn len(&self) -> usize {
-        self.len()
+pub fn make_weighted_directed_graph<W: Clone>(
+    n: usize,
+    edges: &[(usize, usize, W)],
+) -> WeightedGraph<W> {
+    let mut g = vec![vec![]; n];
+    for &(u, v, ref w) in edges.iter() {
+        g[u].push((v, w.clone()));
     }
-
-    fn neighbors(&'a self, a: NodeId) -> Self::Iter {
-        self[a].iter().cloned()
-    }
+    g
 }
+
+pub fn make_weighted_undirected_graph<W: Clone>(
+    n: usize,
+    edges: &[(usize, usize, W)],
+) -> WeightedGraph<W> {
+    let mut g = vec![vec![]; n];
+    for &(u, v, ref w) in edges.iter() {
+        g[u].push((v, w.clone()));
+        g[v].push((u, w.clone()));
+    }
+    g
+}
+
+// struct Map2DGraph<C> {
+//     bd: Vec<Vec<C>>,
+// }
+
+// impl<'a, T> Graph<'a> for Map2DGraph<T> {
+//     type NodeId = (usize, usize);
+//     type Iter = std::slice::Iter<'a, Self::NodeId>;
+
+//     fn len(&self) -> usize {
+//         self.bd.len() * self.bd[0].len()
+//     }
+
+//     fn index(&self, ix: Self::NodeId) -> usize {
+//         ix.0 * self.bd.len() + ix.1
+//     }
+
+//     fn neighbors(&'a self, a: Self::NodeId) -> Self::Iter {
+//         let h = self.bd.len();
+//         let w = self.bd[0].len();
+
+//         const VECT: &[(i64, i64)] = &[(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+//         // VECT.iter()
+//         //     .map(|&(di, dj)| (a.0 as i64 + di, a.1 as i64 + dj))
+//         //     .filter(|&(i, j)| i >= 0 && i < h && j >= 0 && j < w)
+//         //     .map(|&(i, j)| (i as usize, j as usize))
+
+//         todo!()
+//     }
+// }
+
+//-----
 
 pub struct Bfs<'a, G: Graph<'a>> {
     visited: Vec<bool>,
-    q: VecDeque<(usize, Option<usize>)>,
+    q: VecDeque<(G::NodeId, Option<G::NodeId>)>,
     g: &'a G,
 }
 
 impl<'a, G: Graph<'a>> Iterator for Bfs<'a, G> {
-    type Item = (NodeId, NodeId);
+    type Item = (G::NodeId, G::NodeId);
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((u, prev)) = self.q.pop_front() {
             for v in self.g.neighbors(u) {
-                if !self.visited[v] {
-                    self.visited[v] = true;
+                if !self.visited[self.g.index(v)] {
+                    self.visited[self.g.index(v)] = true;
                     self.q.push_back((v, Some(u)));
                 }
             }
@@ -150,7 +228,7 @@ impl<'a, G: Graph<'a>> Iterator for Bfs<'a, G> {
     }
 }
 
-pub fn bfs<'a, G: Graph<'a>>(g: &'a G, start: NodeId) -> Bfs<'a, G> {
+pub fn bfs<'a, G: Graph<'a, NodeId = usize>>(g: &'a G, start: G::NodeId) -> Bfs<'a, G> {
     let n = g.len();
     let mut visited = vec![false; n];
     let mut q = VecDeque::new();
@@ -162,7 +240,7 @@ pub fn bfs<'a, G: Graph<'a>>(g: &'a G, start: NodeId) -> Bfs<'a, G> {
 
 /// Returns a vector which stores distances from `start`.
 /// For unreachable node, `usize::MAX` is stored.
-pub fn make_dist_table<'a, G: Graph<'a>>(g: &'a G, start: usize) -> Vec<usize> {
+pub fn make_dist_table<'a, G: Graph<'a, NodeId = usize>>(g: &'a G, start: G::NodeId) -> Vec<usize> {
     let mut dist = vec![std::usize::MAX; g.len()];
     dist[start] = 0;
     for (u, v) in bfs(g, start) {
