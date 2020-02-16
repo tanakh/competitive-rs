@@ -16,14 +16,14 @@ use std::ops::{Add, Div};
 ///
 /// `pred(l)` and `pred(r)` are not called. `pred` is called only values in the range `(l, r)`.
 ///
-pub fn binary_search<T: Add<Output = T> + Div<Output = T> + PartialEq + From<i8> + Copy>(
+pub fn binary_search<T: Add<Output = T> + Div<Output = T> + PartialEq + From<u8> + Copy>(
     l: T,
     r: T,
     pred: impl Fn(T) -> bool,
 ) -> T {
     let mut l = l;
     let mut r = r;
-    let two = T::from(2_i8);
+    let two = T::from(2_u8);
     loop {
         let m = (l + r) / two;
         if l == m || r == m {
