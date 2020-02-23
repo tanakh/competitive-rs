@@ -9,6 +9,7 @@ lto = true
 panic = 'abort'
 
 [dependencies]
+comprehension = "*"
 itertools = "0.8"
 ndarray = "0.13"
 num = "0.2"

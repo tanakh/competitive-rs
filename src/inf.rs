@@ -1,17 +1,41 @@
-use std::cmp::min;
-use std::ops::Add;
+use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MaybeInf<T> {
-    NotInf(T),
+    NegInf,
+    NonInf(T),
     Inf,
 }
 
 use MaybeInf::*;
 
+impl<T> MaybeInf<T> {
+    pub fn unwrap(self) -> T {
+        match self {
+            NegInf => panic!(),
+            NonInf(a) => a,
+            Inf => panic!(),
+        }
+    }
+
+    pub fn unwrap_or(self, default: T) -> T {
+        match self {
+            NonInf(a) => a,
+            _ => default,
+        }
+    }
+
+    pub fn option(self) -> Option<T> {
+        match self {
+            NonInf(a) => Some(a),
+            _ => None,
+        }
+    }
+}
+
 impl<T> From<T> for MaybeInf<T> {
     fn from(v: T) -> Self {
-        MaybeInf::NotInf(v)
+        NonInf(v)
     }
 }
 
@@ -19,8 +43,15 @@ impl<T: Add<Output = T>> Add for MaybeInf<T> {
     type Output = MaybeInf<T>;
     fn add(self, rhs: Self) -> Self {
         match (self, rhs) {
-            (NotInf(a), NotInf(b)) => NotInf(a + b),
-            _ => Inf,
+            (NegInf, NegInf) => NegInf,
+            (NegInf, NonInf(_)) => NegInf,
+            (NegInf, Inf) => panic!("add -inf + inf"),
+            (NonInf(_), NegInf) => NegInf,
+            (NonInf(a), NonInf(b)) => NonInf(a + b),
+            (NonInf(_), Inf) => Inf,
+            (Inf, NegInf) => panic!("add inf + (-inf)"),
+            (Inf, NonInf(_)) => Inf,
+            (Inf, Inf) => Inf,
         }
     }
 }
@@ -29,14 +60,116 @@ impl<T: Add<Output = T>> Add<T> for MaybeInf<T> {
     type Output = MaybeInf<T>;
     fn add(self, rhs: T) -> Self {
         match self {
-            NotInf(a) => NotInf(a + rhs),
-            _ => Inf,
+            NegInf => NegInf,
+            NonInf(a) => NonInf(a + rhs),
+            Inf => Inf,
         }
     }
 }
 
-impl<T: Clone + Ord> MaybeInf<T> {
-    pub fn min_assign(&mut self, rhs: Self) {
-        *self = min(self.clone(), rhs);
+impl<T: Add<Output = T> + Clone> AddAssign for MaybeInf<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = self.clone() + other;
     }
+}
+
+impl<T: Add<Output = T> + Clone> AddAssign<T> for MaybeInf<T> {
+    fn add_assign(&mut self, other: T) {
+        *self = self.clone() + other;
+    }
+}
+
+impl<T: Sub<Output = T>> Sub for MaybeInf<T> {
+    type Output = MaybeInf<T>;
+    fn sub(self, rhs: Self) -> Self {
+        match (self, rhs) {
+            (NegInf, NegInf) => panic!("sub -inf - (-inf)"),
+            (NegInf, NonInf(_)) => NegInf,
+            (NegInf, Inf) => NegInf,
+            (NonInf(_), NegInf) => Inf,
+            (NonInf(a), NonInf(b)) => NonInf(a - b),
+            (NonInf(_), Inf) => NegInf,
+            (Inf, NegInf) => Inf,
+            (Inf, NonInf(_)) => Inf,
+            (Inf, Inf) => panic!("sub inf - inf"),
+        }
+    }
+}
+
+impl<T: Sub<Output = T>> Sub<T> for MaybeInf<T> {
+    type Output = MaybeInf<T>;
+    fn sub(self, rhs: T) -> Self {
+        match self {
+            NegInf => NegInf,
+            NonInf(a) => NonInf(a - rhs),
+            Inf => Inf,
+        }
+    }
+}
+
+impl<T: Sub<Output = T> + Clone> SubAssign for MaybeInf<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = self.clone() - other;
+    }
+}
+
+impl<T: Sub<Output = T> + Clone> SubAssign<T> for MaybeInf<T> {
+    fn sub_assign(&mut self, other: T) {
+        *self = self.clone() - other;
+    }
+}
+
+impl<T: Neg<Output = T>> Neg for MaybeInf<T> {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        match self {
+            NegInf => Inf,
+            NonInf(a) => NonInf(-a),
+            Inf => NegInf,
+        }
+    }
+}
+
+#[test]
+fn test_inf() {
+    use std::cmp::{max, min};
+
+    let mut t: MaybeInf<i32> = Inf;
+    t = min(t, NonInf(123));
+    assert_eq!(t, NonInf(123));
+    t = min(t, Inf);
+    assert_eq!(t, NonInf(123));
+    t = min(t, NegInf);
+    assert_eq!(t, NegInf);
+    t = max(t, NonInf(123));
+    assert_eq!(t, NonInf(123));
+    t = max(t, Inf);
+    assert_eq!(t, Inf);
+
+    t = -Inf;
+    assert_eq!(t, NegInf);
+
+    assert_eq!(NonInf(123_i32) + 456, NonInf(579));
+
+    t = 0.into();
+    t += 100;
+    assert_eq!(t, NonInf(100));
+    t += NonInf(100);
+    assert_eq!(t, NonInf(200));
+    t += Inf;
+    assert_eq!(t, Inf);
+    t = 0.into();
+    t += NegInf;
+    assert_eq!(t, NegInf);
+
+    t = 0.into();
+    t -= 100;
+    assert_eq!(t, NonInf(-100));
+    t -= NonInf(100);
+    assert_eq!(t, NonInf(-200));
+    t -= Inf;
+    assert_eq!(t, NegInf);
+    t = 0.into();
+    t -= NegInf;
+    assert_eq!(t, Inf);
 }

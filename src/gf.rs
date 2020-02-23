@@ -12,8 +12,14 @@ macro_rules! def_gf {
             pub const P: u64 = $p;
 
             impl std::fmt::Display for GF {
-                fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                fn fmt(&self, f: &mut ::std::fmt::Formatter) -> std::fmt::Result {
                     write!(f, "{}", self.0)
+                }
+            }
+
+            impl $crate::util::Echo for GF {
+                fn echo(&self, w: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                    write!(w, "{}", self.0)
                 }
             }
 
