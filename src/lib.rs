@@ -9,6 +9,7 @@ pub mod ix;
 pub mod kmp;
 pub mod number;
 pub mod prime;
+pub mod segment_tree;
 pub mod slice;
 pub mod union_find;
 pub mod util;
