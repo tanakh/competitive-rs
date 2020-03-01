@@ -23,4 +23,5 @@ pub use crate::echo;
 pub use crate::binary_search::{binary_search, lower_bound, upper_bound};
 pub use crate::bits::power_bitset;
 pub use crate::inf::{MaybeInf, MaybeInf::*};
+pub use crate::ix::{Board, Ix2};
 pub use crate::util::{tf, yn, Echo, Mat, MatS};
