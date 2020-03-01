@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 use std::ops::{Add, AddAssign, Index, IndexMut, Sub, SubAssign};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Ix2 {
     pub x: usize,
     pub y: usize,
@@ -10,13 +10,27 @@ pub struct Ix2 {
 }
 
 impl Ix2 {
-    pub fn new(x: usize, y: usize, w: usize, h: usize) -> Ix2 {
-        assert!(x < w);
-        assert!(y < h);
-        Ix2 { x, y, w, h }
+    pub fn new<T: TryInto<isize>>(x: T, y: T, w: usize, h: usize) -> Ix2 {
+        let x = x.try_into().ok().unwrap();
+        let y = y.try_into().ok().unwrap();
+
+        assert!(x >= 0);
+        assert!(x < w as isize);
+        assert!(y >= 0);
+        assert!(y < h as isize);
+
+        Ix2 {
+            x: x as usize,
+            y: y as usize,
+            w,
+            h,
+        }
     }
 
-    pub fn try_new(x: isize, y: isize, w: usize, h: usize) -> Option<Ix2> {
+    pub fn try_new<T: TryInto<isize>>(x: T, y: T, w: usize, h: usize) -> Option<Ix2> {
+        let x = x.try_into().ok()?;
+        let y = y.try_into().ok()?;
+
         if x >= 0 && x < w as isize && y >= 0 && y < h as isize {
             Some(Ix2 {
                 x: x as usize,
@@ -48,7 +62,7 @@ impl Ix2 {
     pub fn neighbor4(&self) -> impl Iterator<Item = Ix2> {
         const VECT: &[(isize, isize)] = &[(1, 0), (-1, 0), (0, 1), (0, -1)];
         let c = self.clone();
-        VECT.iter().map(move |r| c + r.clone())
+        VECT.iter().filter_map(move |r| c.try_add(r.clone()))
     }
 
     pub fn neighbor8(&self) -> impl Iterator<Item = Ix2> {
@@ -63,7 +77,7 @@ impl Ix2 {
             (1, 1),
         ];
         let c = self.clone();
-        VECT.iter().map(move |r| c + r.clone())
+        VECT.iter().filter_map(move |r| c.try_add(r.clone()))
     }
 }
 
@@ -95,14 +109,22 @@ impl<T: TryInto<isize>> SubAssign<(T, T)> for Ix2 {
     }
 }
 
-pub struct Mat<T>(pub Vec<Vec<T>>);
+pub struct Board<T>(pub Vec<Vec<T>>);
 
-impl<T> Mat<T> {
-    pub fn new(mat: Vec<Vec<T>>) -> Mat<T> {
-        Mat(mat)
+impl<T> Board<T> {
+    pub fn new(mat: Vec<Vec<T>>) -> Self {
+        Self(mat)
     }
 
-    pub fn ix(&self, x: usize, y: usize) -> Ix2 {
+    pub fn width(&self) -> usize {
+        self.0[0].len()
+    }
+
+    pub fn height(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn ix<Ix: TryInto<isize>>(&self, x: Ix, y: Ix) -> Ix2 {
         let w = self.0[0].len();
         let h = self.0.len();
         Ix2::new(x, y, w, h)
@@ -133,7 +155,22 @@ impl<T> Mat<T> {
     }
 }
 
-impl<T> Index<Ix2> for Mat<T> {
+impl<T: PartialEq> Board<T> {
+    pub fn find(&self, v: T) -> Option<Ix2> {
+        let w = self.0[0].len();
+        let h = self.0.len();
+        for y in 0..h {
+            for x in 0..w {
+                if self.0[y][x] == v {
+                    return Some(self.ix(x, y));
+                }
+            }
+        }
+        None
+    }
+}
+
+impl<T> Index<Ix2> for Board<T> {
     type Output = T;
 
     fn index(&self, ix: Ix2) -> &Self::Output {
@@ -141,7 +178,7 @@ impl<T> Index<Ix2> for Mat<T> {
     }
 }
 
-impl<T> IndexMut<Ix2> for Mat<T> {
+impl<T> IndexMut<Ix2> for Board<T> {
     fn index_mut(&mut self, ix: Ix2) -> &mut Self::Output {
         &mut self.0[ix.y][ix.x]
     }
