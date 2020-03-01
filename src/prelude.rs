@@ -15,6 +15,9 @@ pub use num::complex::Complex;
 pub use num::integer::{gcd, lcm};
 pub use num::{abs, Num};
 
+// comprehension
+pub use comprehension::*;
+
 // macros
 pub use crate::def_gf;
 pub use crate::echo;
