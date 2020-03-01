@@ -1,24 +1,5 @@
+use crate::monoid::Monoid;
 use std::cmp::{max, min};
-
-/// A trait of monoids
-///
-/// The class of monoids (types with an associative binary operation that has an identity). Instances should satisfy the following laws:
-/// * `mappend(x, MEMPTY) = x`
-/// * `mappend(MEMPTY, x) = x`
-/// * `mappend(x, mappend(y, z)) = mappend(mappend(x, y), z)` (Semigroup law)
-///
-pub trait Monoid: Sized {
-    /// Identity of `mappend`
-    const MEMPTY: Self;
-
-    /// An associative operation
-    fn mappend(l: &Self, r: &Self) -> Self;
-
-    /// Fold a slice using the monoid
-    fn mconcat(xs: &[Self]) -> Self {
-        xs.iter().fold(Self::MEMPTY, |a, b| Self::mappend(&a, b))
-    }
-}
 
 /// Segment tree
 #[derive(Debug)]
@@ -32,7 +13,7 @@ pub struct SegmentTree<T> {
 impl<T: Clone + Monoid> SegmentTree<T> {
     /// Construct segment tree for given size.
     pub fn new(n: usize) -> Self {
-        Self::from_slice(&vec![T::MEMPTY; n])
+        Self::from_slice(&vec![T::mempty(); n])
     }
 
     /// Construct segment tree from slice.
@@ -99,7 +80,7 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         assert!(r <= self.span);
 
         if l == r {
-            T::MEMPTY
+            T::mempty()
         } else if r - l == self.span {
             self.data.clone()
         } else {

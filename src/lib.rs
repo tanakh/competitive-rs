@@ -7,6 +7,7 @@ pub mod inf;
 pub mod io;
 pub mod ix;
 pub mod kmp;
+pub mod monoid;
 pub mod number;
 pub mod prime;
 pub mod segment_tree;
