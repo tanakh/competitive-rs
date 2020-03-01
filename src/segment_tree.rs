@@ -1,11 +1,20 @@
 use std::cmp::{max, min};
 
+/// A trait of monoids (types with an associative binary operation that has an identity). Instances should satisfy the following laws:
+/// * `mappend(x, MEMPTY) = x`
+/// * `mappend(MEMPTY, x) = x`
+/// * `mappend(x, mappend(y, z)) = mappend(mappend(x, y), z)` (Semigroup law)
+
 pub trait Monoid: Sized {
-    fn mempty() -> Self;
+    /// Identity of `mappend`
+    const MEMPTY: Self;
+
+    /// An associative operation
     fn mappend(l: &Self, r: &Self) -> Self;
 
+    /// Fold a slice using the monoid
     fn mconcat(xs: &[Self]) -> Self {
-        xs.iter().fold(Self::mempty(), |a, b| Self::mappend(&a, b))
+        xs.iter().fold(Self::MEMPTY, |a, b| Self::mappend(&a, b))
     }
 }
 
@@ -21,7 +30,7 @@ pub struct SegmentTree<T> {
 impl<T: Clone + Monoid> SegmentTree<T> {
     /// Construct segment tree for given size.
     pub fn new(n: usize) -> Self {
-        Self::from_slice(&vec![T::mempty(); n])
+        Self::from_slice(&vec![T::MEMPTY; n])
     }
 
     /// Construct segment tree from slice.
@@ -46,6 +55,10 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.span
+    }
+
     /// Update i-th element
     pub fn update(&mut self, i: usize, v: T) {
         if self.span == 1 {
@@ -68,15 +81,23 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         }
     }
 
-    /// Query for [l, r).
-    /// Pre-requirement: `l <= r` && `r <= self.span`
-    /// Returns `Monoid::mconcat(&s[l..r])`
+    /// Query for `[l, r)`.
+    ///
+    /// # Prerequiremens
+    ///
+    /// * `l <= r`
+    /// * `r <= self.len()`
+    ///
+    /// # Returns
+    ///
+    /// `Monoid::mconcat(&s[l..r])`
+    ///
     pub fn query(&self, l: usize, r: usize) -> T {
         assert!(l <= r);
         assert!(r <= self.span);
 
         if l == r {
-            T::mempty()
+            T::MEMPTY
         } else if r - l == self.span {
             self.data.clone()
         } else {
