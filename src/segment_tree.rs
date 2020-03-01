@@ -1,10 +1,12 @@
 use std::cmp::{max, min};
 
-/// A trait of monoids (types with an associative binary operation that has an identity). Instances should satisfy the following laws:
+/// A trait of monoids
+///
+/// The class of monoids (types with an associative binary operation that has an identity). Instances should satisfy the following laws:
 /// * `mappend(x, MEMPTY) = x`
 /// * `mappend(MEMPTY, x) = x`
 /// * `mappend(x, mappend(y, z)) = mappend(mappend(x, y), z)` (Semigroup law)
-
+///
 pub trait Monoid: Sized {
     /// Identity of `mappend`
     const MEMPTY: Self;
