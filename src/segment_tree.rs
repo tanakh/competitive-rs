@@ -19,7 +19,7 @@ pub struct SegmentTree<T> {
 }
 
 impl<T: Clone + Monoid> SegmentTree<T> {
-    /// Construct segment tree from slice.
+    /// Construct segment tree for given size.
     pub fn new(n: usize) -> Self {
         Self::from_slice(&vec![T::mempty(); n])
     }
