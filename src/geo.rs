@@ -2,7 +2,7 @@ use num::Complex;
 use proconio::source::{Readable, Source};
 use std::io::BufRead;
 
-type Pt = Complex<f64>;
+pub type Pt = Complex<f64>;
 
 /// input marker for Pt
 pub struct PtM {}
