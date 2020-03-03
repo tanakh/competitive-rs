@@ -38,6 +38,7 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         }
     }
 
+    /// Length of sequence
     pub fn len(&self) -> usize {
         self.span
     }
@@ -66,7 +67,7 @@ impl<T: Clone + Monoid> SegmentTree<T> {
 
     /// Query for `[l, r)`.
     ///
-    /// # Prerequiremens
+    /// # Constraints
     ///
     /// * `l <= r`
     /// * `r <= self.len()`
@@ -77,7 +78,7 @@ impl<T: Clone + Monoid> SegmentTree<T> {
     ///
     pub fn query(&self, l: usize, r: usize) -> T {
         assert!(l <= r);
-        assert!(r <= self.span);
+        assert!(r <= self.len());
 
         if l == r {
             T::mempty()
