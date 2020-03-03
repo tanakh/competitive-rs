@@ -121,27 +121,19 @@ macro_map!(impl_echo, i8, u8, i16, u16, i32, u32, i64, u64, i128, u128, isize, u
 macro_map!(impl_echo, char, &str, String);
 macro_map!(impl_echo_float, f32, f64);
 
-pub struct Bool<'a> {
-    value: bool,
-    t: &'a str,
-    f: &'a str,
-}
-
-pub fn yn(value: bool) -> Bool<'static> {
-    Bool {
-        value,
-        t: "Yes",
-        f: "No",
+pub fn yn(value: bool) -> &'static str {
+    if value {
+        "Yes"
+    } else {
+        "No"
     }
 }
 
-pub fn tf<'a>(value: bool, t: &'a str, f: &'a str) -> Bool<'a> {
-    Bool { value, t, f }
-}
-
-impl<'a> Echo for Bool<'a> {
-    fn echo(&self, w: &mut impl Write) -> Result<(), std::io::Error> {
-        write!(w, "{}", if self.value { self.t } else { self.f })
+pub fn tf<'a>(value: bool, t: &'a str, f: &'a str) -> &'a str {
+    if value {
+        t
+    } else {
+        f
     }
 }
 
