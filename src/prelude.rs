@@ -13,7 +13,7 @@ pub use proconio::marker::{Bytes, Chars, Isize1, Usize1};
 // num stuffs
 pub use num::complex::Complex;
 pub use num::integer::{gcd, lcm};
-pub use num::{abs, Num};
+pub use num::{abs, clamp, BigInt, BigRational, BigUint, Num, Rational};
 
 // comprehension
 pub use comprehension::*;
