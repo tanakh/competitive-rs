@@ -11,7 +11,9 @@ panic = 'abort'
 [dependencies]
 comprehension = "*"
 itertools = "0.8"
+memoise = "*"
 ndarray = "0.13"
 num = "0.2"
 proconio = "0.3"
-memoise = "*"
+typenum = "1.11"
+typenum-promote = "0.1"
