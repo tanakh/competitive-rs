@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 use std::ops::{Add, AddAssign, Index, IndexMut, Sub, SubAssign};
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Ix2 {
     pub x: usize,
     pub y: usize,
