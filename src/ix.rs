@@ -109,6 +109,7 @@ impl<T: TryInto<isize>> SubAssign<(T, T)> for Ix2 {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Board<T>(pub Vec<Vec<T>>);
 
 impl<T> Board<T> {
