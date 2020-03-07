@@ -18,9 +18,12 @@ impl Readable for PtM {
     }
 }
 
-/// dot product
 pub fn cross(a: &Pt, b: &Pt) -> f64 {
     (a.conj() * b).im
+}
+
+pub fn dot(a: &Pt, b: &Pt) -> f64 {
+    (a.conj() * b).re
 }
 
 /// Signed area of triangle
