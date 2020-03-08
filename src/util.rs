@@ -32,7 +32,7 @@ impl<T: Echo> Echo for Vec<T> {
     }
 }
 
-pub struct Mat<T>(Vec<Vec<T>>);
+pub struct Mat<T>(pub Vec<Vec<T>>);
 
 impl<T: Echo> Echo for Mat<T> {
     fn echo(&self, w: &mut impl Write) -> Result<(), std::io::Error> {
@@ -46,7 +46,7 @@ impl<T: Echo> Echo for Mat<T> {
     }
 }
 
-pub struct MatS(Vec<Vec<char>>);
+pub struct MatS(pub Vec<Vec<char>>);
 
 impl Echo for MatS {
     fn echo(&self, w: &mut impl Write) -> Result<(), std::io::Error> {
