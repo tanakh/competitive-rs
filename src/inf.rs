@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MaybeInf<T> {
@@ -130,6 +130,62 @@ impl<T: Neg<Output = T>> Neg for MaybeInf<T> {
     }
 }
 
+impl<T: Mul<Output = T> + PartialOrd + From<u8>> Mul for MaybeInf<T> {
+    type Output = MaybeInf<T>;
+    fn mul(self, rhs: Self) -> Self {
+        match (self, rhs) {
+            (NegInf, NegInf) => Inf,
+            (NegInf, NonInf(b)) => {
+                if b > 0_u8.into() {
+                    NegInf
+                } else if b == 0_u8.into() {
+                    panic!("-inf * 0")
+                } else {
+                    Inf
+                }
+            }
+            (NegInf, Inf) => NegInf,
+            (NonInf(a), NegInf) => NegInf::<T> * NonInf(a),
+            (NonInf(a), NonInf(b)) => NonInf(a * b),
+            (NonInf(a), Inf) => {
+                if a > 0_u8.into() {
+                    Inf
+                } else if a == 0_u8.into() {
+                    panic!("inf * 0");
+                } else {
+                    NegInf
+                }
+            }
+            (Inf, NegInf) => NegInf,
+            (Inf, NonInf(b)) => NonInf(b) * Inf,
+            (Inf, Inf) => Inf,
+        }
+    }
+}
+
+impl<T: Mul<Output = T>> Mul<T> for MaybeInf<T> {
+    type Output = MaybeInf<T>;
+    fn mul(self, rhs: T) -> Self {
+        match self {
+            NegInf => NegInf,
+            NonInf(a) => NonInf(a * rhs),
+            Inf => Inf,
+        }
+    }
+}
+
+impl<T: Mul<Output = T> + Clone + PartialOrd + From<u8>> MulAssign for MaybeInf<T> {
+    fn mul_assign(&mut self, other: Self) {
+        *self = self.clone() * other;
+    }
+}
+
+impl<T: Mul<Output = T> + Clone> MulAssign<T> for MaybeInf<T> {
+    fn mul_assign(&mut self, other: T) {
+        *self = self.clone() * other;
+    }
+}
+
 #[test]
 fn test_inf() {
     use std::cmp::{max, min};
@@ -172,4 +228,15 @@ fn test_inf() {
     t = 0.into();
     t -= NegInf;
     assert_eq!(t, Inf);
+
+    t = 1.into();
+    t *= 100;
+    assert_eq!(t, NonInf(100));
+    t *= NonInf(100);
+    assert_eq!(t, NonInf(10000));
+    t *= Inf;
+    assert_eq!(t, Inf);
+    t = 1.into();
+    t *= NegInf;
+    assert_eq!(t, NegInf);
 }
