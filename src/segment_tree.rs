@@ -50,7 +50,7 @@ impl<T: Clone + Monoid> SegmentTree<T> {
             assert!(self.r.is_none());
             assert!(i == 0);
 
-            self.data = v;
+            self.data = T::mappend(&self.data, &v);
         } else {
             let m = self.span / 2;
             let l = self.l.as_mut().unwrap();
