@@ -21,6 +21,7 @@ pub trait Monoid: Sized {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Sum<T>(pub T);
 
 impl<T: Copy + Zero + Add<Output = T>> Monoid for Sum<T> {
@@ -45,6 +46,7 @@ impl<T> From<T> for Sum<T> {
 //     }
 // }
 
+#[derive(Clone, Copy)]
 pub struct Product<T>(pub T);
 
 impl<T: Copy + One + Mul<Output = T>> Monoid for Product<T> {
