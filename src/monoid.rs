@@ -1,4 +1,4 @@
-use num::{One, Zero};
+use num::{Bounded, One, Zero};
 use std::ops::{Add, Mul};
 
 /// A trait of monoids
@@ -40,12 +40,6 @@ impl<T> From<T> for Sum<T> {
     }
 }
 
-// impl<T> From<Sum<T>> for T {
-//     fn from(v: Sum<T>) -> Self {
-//         v.0
-//     }
-// }
-
 #[derive(Clone, Copy)]
 pub struct Product<T>(pub T);
 
@@ -65,8 +59,26 @@ impl<T> From<T> for Product<T> {
     }
 }
 
-// impl<T> From<Product<T>> for T {
-//     fn from(v: Product<T>) -> Self {
-//         v.0
-//     }
-// }
+pub struct Max<T>(pub T);
+
+impl<T: Copy + Ord + Bounded> Monoid for Max<T> {
+    fn mempty() -> Self {
+        Self(<T as Bounded>::min_value())
+    }
+
+    fn mappend(l: &Self, r: &Self) -> Self {
+        Self(l.0.max(r.0))
+    }
+}
+
+pub struct Min<T>(pub T);
+
+impl<T: Copy + Ord + Bounded> Monoid for Min<T> {
+    fn mempty() -> Self {
+        Self(<T as Bounded>::max_value())
+    }
+
+    fn mappend(l: &Self, r: &Self) -> Self {
+        Self(l.0.min(r.0))
+    }
+}

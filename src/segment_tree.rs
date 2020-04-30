@@ -44,13 +44,13 @@ impl<T: Clone + Monoid> SegmentTree<T> {
     }
 
     /// Update i-th element
+    /// `s[i] = v`
     pub fn update(&mut self, i: usize, v: T) {
         if self.span == 1 {
             assert!(self.l.is_none());
             assert!(self.r.is_none());
             assert!(i == 0);
-
-            self.data = T::mappend(&self.data, &v);
+            self.data = v;
         } else {
             let m = self.span / 2;
             let l = self.l.as_mut().unwrap();
@@ -63,6 +63,12 @@ impl<T: Clone + Monoid> SegmentTree<T> {
 
             self.data = T::mappend(&l.data, &r.data);
         }
+    }
+
+    /// Get i-th element
+    /// Equals to `query(i, i + 1)`
+    pub fn get(&self, i: usize) -> T {
+        self.query(i, i + 1)
     }
 
     /// Query for `[l, r)`.
