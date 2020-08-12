@@ -48,7 +48,7 @@ pub fn circle_cross(a: Pt, ar: f64, b: Pt, br: f64) -> Option<(Pt, Pt)> {
     let h = (ar.powi(2) - x.powi(2)).sqrt();
 
     let v = (b - a) / c;
-    let w = v * Pt::from_polar(&1.0, &(f64::consts::PI / 2.0));
+    let w = v * Pt::from_polar(1.0, f64::consts::PI / 2.0);
     let c1 = a + x * v + h * w;
     let c2 = a + x * v - h * w;
 

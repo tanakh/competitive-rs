@@ -9,11 +9,12 @@ lto = true
 panic = 'abort'
 
 [dependencies]
-comprehension = "*"
-itertools = "0.8"
-memoise = "*"
+argio = "0.1"
+comprehension = "0.2"
+itertools = "0.9"
+memoise = "0.3"
 ndarray = "0.13"
-num = "0.2"
-proconio = "0.3"
-typenum = "1.11"
+num = "0.3"
+proconio = "0.4"
+typenum = "1.12"
 typenum-promote = "0.1"

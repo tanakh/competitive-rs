@@ -1,8 +1,18 @@
+use crate::inf::MaybeInf::{self, *};
 use proconio::marker::Usize1;
 use proconio::source::{Readable, Source};
 use std::collections::VecDeque;
 use std::io::BufRead;
 use std::marker::PhantomData;
+
+/// Graph trait
+pub trait Graph<'a> {
+    type NodeId: Copy;
+    type Iter: Iterator<Item = Self::NodeId>;
+    fn len(&self) -> usize;
+    fn index(&self, a: Self::NodeId) -> usize;
+    fn neighbors(&'a self, a: Self::NodeId) -> Self::Iter;
+}
 
 // Markers
 
@@ -97,14 +107,6 @@ impl<IndexType: Readable<Output = usize>> Readable for ListTree<IndexType> {
 // TODO: Markers for Tree described by nth-nodes' parent
 
 //-----
-
-pub trait Graph<'a> {
-    type NodeId: Copy;
-    type Iter: Iterator<Item = Self::NodeId>;
-    fn len(&self) -> usize;
-    fn index(&self, a: Self::NodeId) -> usize;
-    fn neighbors(&'a self, a: Self::NodeId) -> Self::Iter;
-}
 
 impl<'a> Graph<'a> for UnweightedGraph {
     type NodeId = usize;
@@ -240,14 +242,35 @@ pub fn bfs<'a, G: Graph<'a, NodeId = usize>>(g: &'a G, start: G::NodeId) -> Bfs<
 
 /// Returns a vector which stores distances from `start`.
 /// For unreachable node, `usize::MAX` is stored.
-pub fn make_dist_table<'a, G: Graph<'a, NodeId = usize>>(g: &'a G, start: G::NodeId) -> Vec<usize> {
-    let mut dist = vec![std::usize::MAX; g.len()];
-    dist[start] = 0;
+pub fn make_dist_table<'a, G: Graph<'a, NodeId = usize>>(
+    g: &'a G,
+    start: G::NodeId,
+) -> Vec<MaybeInf<usize>> {
+    let mut dist = vec![Inf; g.len()];
+    dist[start] = NonInf(0);
     for (u, v) in bfs(g, start) {
         dist[v] = dist[u] + 1;
     }
     dist
 }
+
+// pub fn warshall_floyd<'a>(g: impl Graph<'a, NodeId = usize>) -> Vec<Vec<MaybeInf<usize>>> {
+//     let mut mg = vec![vec![Inf; g.len()]; g.len()];
+//     for u in 0..g.len() {
+//         for v in g.neighbors(u) {
+//             mg[u][v] = NonInf;
+//         }
+//     }
+
+//     for k in 0..g.len() {
+//         for i in 0..g.len() {
+//             for j in 0..g.len() {
+//                 mg[i][j] = min(mg[i][j], mg[i][k] + mg[k][j]);
+//             }
+//         }
+//     }
+//     todo!()
+// }
 
 /*
 fn visit(

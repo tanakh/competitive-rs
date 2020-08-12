@@ -1,4 +1,3 @@
-use crate::util::Echo;
 use std::convert::{From, Into, TryInto};
 use std::fmt::Display;
 use std::marker::PhantomData;
@@ -32,12 +31,6 @@ impl<P> Copy for GF<P> {}
 impl<P> Display for GF<P> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
-    }
-}
-
-impl<P> Echo for GF<P> {
-    fn echo(&self, w: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-        write!(w, "{}", self.0)
     }
 }
 
