@@ -23,7 +23,7 @@ pub use comprehension::*;
 // re-exports
 pub use crate::binary_search::{binary_search, lower_bound, upper_bound};
 pub use crate::bits::{power_bitset, SmallBitSet};
-pub use crate::display::AtCoder;
+pub use crate::display::{AtCoder, Mat, Vertical};
 pub use crate::gf::GF;
 pub use crate::inf::{MaybeInf, MaybeInf::*};
 pub use crate::ix::{Board, Ix2};
