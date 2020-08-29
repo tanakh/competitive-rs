@@ -1,5 +1,6 @@
 pub mod binary_search;
 pub mod bits;
+pub mod collections;
 pub mod display;
 pub mod geo;
 pub mod gf;
