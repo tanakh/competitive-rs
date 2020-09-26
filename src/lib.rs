@@ -12,6 +12,7 @@ pub mod kmp;
 pub mod monoid;
 pub mod number;
 pub mod prime;
+pub mod range;
 pub mod segment_tree;
 pub mod slice;
 pub mod union_find;

@@ -29,4 +29,5 @@ pub use crate::gf::GF;
 pub use crate::inf::{MaybeInf, MaybeInf::*};
 pub use crate::ix::{Board, Ix2};
 pub use crate::monoid::{Max, Min, Monoid, Product, Sum};
+pub use crate::range::RangeExt;
 pub use crate::segment_tree::SegmentTree;
