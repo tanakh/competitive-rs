@@ -59,6 +59,7 @@ impl<T> From<T> for Product<T> {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Max<T>(pub T);
 
 impl<T: Copy + Ord + Bounded> Monoid for Max<T> {
@@ -71,6 +72,7 @@ impl<T: Copy + Ord + Bounded> Monoid for Max<T> {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Min<T>(pub T);
 
 impl<T: Copy + Ord + Bounded> Monoid for Min<T> {
