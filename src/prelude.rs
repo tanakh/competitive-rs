@@ -4,7 +4,7 @@ pub use std::collections::{BTreeMap, BTreeSet, VecDeque};
 pub use std::{i128, i16, i32, i64, i8, isize, u128, u16, u32, u64, u8, usize};
 
 pub use itertools::Itertools;
-pub use memoise::memoise;
+pub use memoise::{memoise, memoise_map};
 pub use typenum_promote::promote;
 
 // input / output
