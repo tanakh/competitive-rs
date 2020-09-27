@@ -21,7 +21,7 @@ pub trait Monoid: Sized {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Sum<T>(pub T);
 
 impl<T: Copy + Zero + Add<Output = T>> Monoid for Sum<T> {
@@ -40,7 +40,7 @@ impl<T> From<T> for Sum<T> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Product<T>(pub T);
 
 impl<T: Copy + One + Mul<Output = T>> Monoid for Product<T> {
@@ -59,7 +59,7 @@ impl<T> From<T> for Product<T> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Max<T>(pub T);
 
 impl<T: Copy + Ord + Bounded> Monoid for Max<T> {
@@ -72,7 +72,7 @@ impl<T: Copy + Ord + Bounded> Monoid for Max<T> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Min<T>(pub T);
 
 impl<T: Copy + Ord + Bounded> Monoid for Min<T> {
