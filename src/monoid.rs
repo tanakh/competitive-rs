@@ -72,6 +72,12 @@ impl<T: Copy + Ord + Bounded> Monoid for Max<T> {
     }
 }
 
+impl<T> From<T> for Max<T> {
+    fn from(v: T) -> Self {
+        Max(v)
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Min<T>(pub T);
 
@@ -82,5 +88,11 @@ impl<T: Copy + Ord + Bounded> Monoid for Min<T> {
 
     fn mappend(l: &Self, r: &Self) -> Self {
         Self(l.0.min(r.0))
+    }
+}
+
+impl<T> From<T> for Min<T> {
+    fn from(v: T) -> Self {
+        Min(v)
     }
 }
