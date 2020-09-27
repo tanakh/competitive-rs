@@ -13,12 +13,14 @@ pub struct SegmentTree<T> {
 }
 
 impl<T: Clone + Monoid> SegmentTree<T> {
+    /// O(n).
     /// Construct segment tree for given size.
     pub fn new(n: usize) -> Self {
         let s: &[T] = &[];
         Self::init(n, s)
     }
 
+    /// O(n).
     /// Construct segment tree from slice.
     pub fn from_slice(s: &[impl Into<T> + Clone]) -> Self {
         Self::init(s.len(), s)
@@ -46,12 +48,14 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         Self { len, v }
     }
 
-    /// Length of sequence
+    /// O(1).
+    /// Length of sequence.
     pub fn len(&self) -> usize {
         self.len
     }
 
-    /// Set v to `i`-th element
+    /// O(log n).
+    /// Set v to `i`-th element.
     /// `s[i] = v`
     pub fn set(&mut self, i: usize, v: impl Into<T>) {
         let n = (self.v.len() + 1) / 2;
@@ -63,12 +67,14 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         }
     }
 
+    /// O(log n).
     /// mappend v to `i`-th element
     /// `s[i] = mappend(s[i], v)`
     pub fn mappend(&mut self, i: usize, v: impl Into<T>) {
         self.set(i, T::mappend(&self.get(i), &v.into()));
     }
 
+    /// O(1).
     /// Get i-th element
     /// Equals to `query(i, i + 1)`
     pub fn get(&self, i: usize) -> T {
@@ -76,11 +82,9 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         self.v[n - 1 + i].clone()
     }
 
+    /// O(log n).
     /// Query for `range`.
-    ///
-    /// # Returns
-    ///
-    /// `Monoid::mconcat(&s[range])`
+    /// Returns `T::mconcat(&s[range])`.
     ///
     /// # Examples
     ///
@@ -109,21 +113,25 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         assert!(r <= self.len);
 
         let n = (self.v.len() + 1) / 2;
-        self.q(0, n, l, r)
-    }
+        let mut l = n + l;
+        let mut r = n + r;
 
-    fn q(&self, ix: usize, span: usize, l: usize, r: usize) -> T {
-        if l == r {
-            T::mempty()
-        } else if r - l == span {
-            self.v[ix].clone()
-        } else {
-            let m = span / 2;
-            T::mappend(
-                &self.q(ix * 2 + 1, m, min(l, m), min(r, m)),
-                &self.q(ix * 2 + 2, m, max(l, m) - m, max(r, m) - m),
-            )
+        let mut ret_l = T::mempty();
+        let mut ret_r = T::mempty();
+        while l < r {
+            if l & 1 != 0 {
+                ret_l = T::mappend(&ret_l, &self.v[l - 1]);
+                l += 1;
+            }
+            if r & 1 != 0 {
+                r -= 1;
+                ret_r = T::mappend(&self.v[r - 1], &ret_r);
+            }
+            l /= 2;
+            r /= 2;
         }
+
+        T::mappend(&ret_l, &ret_r)
     }
 }
 
