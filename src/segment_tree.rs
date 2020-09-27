@@ -1,5 +1,9 @@
 use crate::monoid::Monoid;
-use std::cmp::{max, min};
+use std::{
+    cmp::{max, min},
+    ops::Bound,
+    ops::RangeBounds,
+};
 
 /// Segment tree
 #[derive(Debug)]
@@ -72,20 +76,38 @@ impl<T: Clone + Monoid> SegmentTree<T> {
         self.v[n - 1 + i].clone()
     }
 
-    /// Query for `[l, r)`.
-    ///
-    /// # Constraints
-    ///
-    /// * `l <= r`
-    /// * `r <= self.len()`
+    /// Query for `range`.
     ///
     /// # Returns
     ///
-    /// `Monoid::mconcat(&s[l..r])`
+    /// `Monoid::mconcat(&s[range])`
     ///
-    pub fn query(&self, l: usize, r: usize) -> T {
+    /// # Examples
+    ///
+    /// ```
+    /// # use competitive::monoid::Sum;
+    /// # use competitive::segment_tree::SegmentTree;
+    /// let mut st = SegmentTree::<Sum<i64>>::new(5);
+    /// st.set(2, 3);
+    /// assert_eq!(st.query(0..=2).0, 3);
+    /// assert_eq!(st.query(0..2).0, 0);
+    /// ```
+    ///
+    pub fn query(&self, range: impl RangeBounds<usize>) -> T {
+        let l = match range.start_bound() {
+            Bound::Included(v) => *v,
+            Bound::Excluded(v) => v + 1,
+            Bound::Unbounded => 0,
+        };
+        let r = match range.end_bound() {
+            Bound::Included(v) => v + 1,
+            Bound::Excluded(v) => *v,
+            Bound::Unbounded => self.len,
+        };
+
         assert!(l <= r);
         assert!(r <= self.len);
+
         let n = (self.v.len() + 1) / 2;
         self.q(0, n, l, r)
     }
@@ -129,24 +151,29 @@ fn test() {
 
     let mut st = SegmentTree::<Sum<i64>>::new(5);
     st.set(2, 1);
-    assert_eq!(st.query(0, 5).0, 1);
-    assert_eq!(st.query(0, 2).0, 0);
-    assert_eq!(st.query(3, 5).0, 0);
-    assert_eq!(st.query(2, 3).0, 1);
-    assert_eq!(st.query(2, 2).0, 0);
+    assert_eq!(st.query(0..5).0, 1);
+    assert_eq!(st.query(0..2).0, 0);
+    assert_eq!(st.query(3..5).0, 0);
+    assert_eq!(st.query(2..3).0, 1);
+    assert_eq!(st.query(2..2).0, 0);
     st.mappend(2, 2);
-    assert_eq!(st.query(0, 5).0, 3);
-    assert_eq!(st.query(0, 2).0, 0);
-    assert_eq!(st.query(3, 5).0, 0);
-    assert_eq!(st.query(2, 3).0, 3);
-    assert_eq!(st.query(2, 2).0, 0);
+    assert_eq!(st.query(0..5).0, 3);
+    assert_eq!(st.query(0..2).0, 0);
+    assert_eq!(st.query(3..5).0, 0);
+    assert_eq!(st.query(2..3).0, 3);
+    assert_eq!(st.query(2..2).0, 0);
     st.set(0, 1);
     st.set(1, 2);
     st.set(3, 4);
     st.set(4, 5);
-    assert_eq!(st.query(0, 5).0, 15);
-    assert_eq!(st.query(0, 2).0, 3);
-    assert_eq!(st.query(3, 5).0, 9);
-    assert_eq!(st.query(2, 3).0, 3);
-    assert_eq!(st.query(2, 2).0, 0);
+    assert_eq!(st.query(0..5).0, 15);
+    assert_eq!(st.query(0..2).0, 3);
+    assert_eq!(st.query(3..5).0, 9);
+    assert_eq!(st.query(2..3).0, 3);
+    assert_eq!(st.query(2..2).0, 0);
+    assert_eq!(st.query(2..=2).0, 3);
+    assert_eq!(st.query(..).0, 15);
+    assert_eq!(st.query(1..).0, 14);
+    assert_eq!(st.query(..3).0, 6);
+    assert_eq!(st.query(..=3).0, 10);
 }
