@@ -7,6 +7,7 @@ Add these lines to your `Cargo.toml`.
 
 ```toml
 [dependencies]
-proconio = "*"
 competitive = { git = "https://github.com/tanakh/competitive-rs.git" }
+proconio = "*"
+typenum = "*"
 ```
