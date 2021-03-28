@@ -1,9 +1,5 @@
 use crate::monoid::Monoid;
-use std::{
-    cmp::{max, min},
-    ops::Bound,
-    ops::RangeBounds,
-};
+use std::ops::{Bound, RangeBounds};
 
 /// Segment tree
 #[derive(Debug)]
