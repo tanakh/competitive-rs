@@ -11,10 +11,10 @@ panic = 'abort'
 [dependencies]
 argio = "0.1"
 comprehension = "0.2"
-itertools = "0.9"
+itertools = "0.10"
 memoise = "0.3"
-ndarray = "0.13"
-num = "0.3"
+ndarray = "0.15"
+num = "0.4"
 proconio = "0.4"
 typenum = "1.12"
 typenum-promote = "0.1"
