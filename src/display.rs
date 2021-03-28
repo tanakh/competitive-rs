@@ -80,7 +80,7 @@ fn test_num() {
     );
 }
 
-impl<P> Display for AtCoder<GF<P>> {
+impl<const P: u64> Display for AtCoder<GF<P>> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
