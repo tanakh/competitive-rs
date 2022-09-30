@@ -1,27 +1,15 @@
 use std::{
     cmp::{max, min},
-    ops::{Range, Sub},
+    ops::Range,
 };
 
 pub trait RangeExt: Sized {
-    // FIXME: remove this when Range::is_empty() become stable.
-    fn empty(&self) -> bool;
-    fn contains(&self, rhs: Self) -> bool;
-
     fn intersection(&self, rhs: Self) -> Option<Self>;
     fn union(&self, rhs: Self) -> Option<Self>;
     fn difference(&self, rhs: Self) -> Vec<Self>;
 }
 
-impl<Idx: Eq + Ord + Sub + Copy> RangeExt for Range<Idx> {
-    fn empty(&self) -> bool {
-        self.start == self.end
-    }
-
-    fn contains(&self, rhs: Self) -> bool {
-        self.start <= rhs.start && rhs.end <= self.end
-    }
-
+impl<Idx: Eq + Ord + Copy> RangeExt for Range<Idx> {
     fn intersection(&self, rhs: Self) -> Option<Self> {
         let start = max(self.start, rhs.start);
         let end = min(self.end, rhs.end);

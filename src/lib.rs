@@ -7,6 +7,7 @@ pub mod gf;
 pub mod graph;
 pub mod inf;
 pub mod io;
+pub mod iter;
 pub mod ix;
 pub mod kmp;
 pub mod monoid;

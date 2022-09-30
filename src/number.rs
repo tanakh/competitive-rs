@@ -1,4 +1,4 @@
-use std::ops::{Div, Mul, MulAssign};
+use std::ops::{Div, Mul, MulAssign, Rem};
 
 /// Calculate factorial
 pub fn fact<T: MulAssign<T> + From<i32>>(n: usize) -> T {
@@ -36,20 +36,54 @@ pub fn gen_fact_table<T: Mul<Output = T> + From<i32> + Clone>(n: usize) -> Vec<T
     ret
 }
 
+/// Calculate factorial (memoised)
+#[memoise::memoise(n)]
+pub fn fact_memo<T>(n: usize) -> T
+where
+    T: Mul<Output = T> + From<i32> + Clone,
+{
+    if n == 0 {
+        T::from(1 as i32)
+    } else {
+        fact_memo::<T>(n - 1) * T::from(n as i32)
+    }
+}
+
 /// number of k-combinations using factorial table
-pub fn comb_from_table<T: Mul<Output = T> + Div<Output = T> + Clone>(
+pub fn comb_memo<T: Mul<Output = T> + Div<Output = T> + From<i32> + Clone>(
     n: usize,
     k: usize,
-    fact: &[T],
 ) -> T {
-    fact[n].clone() / (fact[k].clone() * fact[n - k].clone())
+    if n < k {
+        0.into()
+    } else {
+        fact_memo::<T>(n) / (fact_memo::<T>(k) * fact_memo::<T>(n - k))
+    }
 }
 
 /// Calculate k-multicombination using factorial table
-pub fn multicomb_from_table<T: Mul<Output = T> + Div<Output = T> + Clone>(
+pub fn multicomb_memo<T: Mul<Output = T> + Div<Output = T> + From<i32> + Clone>(
     n: usize,
     k: usize,
-    fact: &[T],
 ) -> T {
-    comb_from_table(n + k - 1, k, fact)
+    comb_memo::<T>(n + k - 1, k)
+}
+
+/// O(log m).
+/// Calculate `a.pow(b) % m`
+pub fn pow_mod<T>(a: T, b: T, m: T) -> T
+where
+    T: Eq + Clone + From<u8> + Mul<Output = T> + Div<Output = T> + Rem<Output = T>,
+{
+    if b == 0.into() {
+        1.into()
+    } else {
+        let t = pow_mod(a.clone(), b.clone() / 2.into(), m.clone());
+        let t = t.clone() * t % m;
+        if b % 2.into() == 0.into() {
+            t
+        } else {
+            t * a
+        }
+    }
 }

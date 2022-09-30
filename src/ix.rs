@@ -112,8 +112,14 @@ impl<T: TryInto<isize>> SubAssign<(T, T)> for Ix2 {
 #[derive(Debug, Clone)]
 pub struct Board<T>(pub Vec<Vec<T>>);
 
+impl<T: Clone> Board<T> {
+    pub fn new(v: T, w: usize, h: usize) -> Self {
+        Self(vec![vec![v; w]; h])
+    }
+}
+
 impl<T> Board<T> {
-    pub fn new(mat: Vec<Vec<T>>) -> Self {
+    pub fn from(mat: Vec<Vec<T>>) -> Self {
         Self(mat)
     }
 

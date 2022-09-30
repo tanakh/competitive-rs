@@ -4,7 +4,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 
 /// Finite field of prime `P`
 ///
-/// `P` must be an instance of `typenum::Unsigned` and a prime number.
+/// `P` must be a prime number.
 ///
 /// ```
 /// use competitive::prelude::*;

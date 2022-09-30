@@ -94,19 +94,7 @@ impl<T: Clone + Monoid> SegmentTree<T> {
     /// ```
     ///
     pub fn query(&self, range: impl RangeBounds<usize>) -> T {
-        let l = match range.start_bound() {
-            Bound::Included(v) => *v,
-            Bound::Excluded(v) => v + 1,
-            Bound::Unbounded => 0,
-        };
-        let r = match range.end_bound() {
-            Bound::Included(v) => v + 1,
-            Bound::Excluded(v) => *v,
-            Bound::Unbounded => self.len,
-        };
-
-        assert!(l <= r);
-        assert!(r <= self.len);
+        let (l, r) = to_half_open_interval(range, self.len());
 
         let n = (self.v.len() + 1) / 2;
         let mut l = n + l;
@@ -129,6 +117,24 @@ impl<T: Clone + Monoid> SegmentTree<T> {
 
         T::mappend(&ret_l, &ret_r)
     }
+}
+
+fn to_half_open_interval(range: impl RangeBounds<usize>, len: usize) -> (usize, usize) {
+    let l = match range.start_bound() {
+        Bound::Included(v) => *v,
+        Bound::Excluded(v) => v + 1,
+        Bound::Unbounded => 0,
+    };
+    let r = match range.end_bound() {
+        Bound::Included(v) => v + 1,
+        Bound::Excluded(v) => *v,
+        Bound::Unbounded => len,
+    };
+
+    assert!(l <= r);
+    assert!(r <= len);
+
+    (l, r)
 }
 
 #[test]
