@@ -36,38 +36,38 @@ pub fn gen_fact_table<T: Mul<Output = T> + From<i32> + Clone>(n: usize) -> Vec<T
     ret
 }
 
-/// Calculate factorial (memoised)
-#[memoise::memoise(n)]
-pub fn fact_memo<T>(n: usize) -> T
-where
-    T: Mul<Output = T> + From<i32> + Clone,
-{
-    if n == 0 {
-        T::from(1 as i32)
-    } else {
-        fact_memo::<T>(n - 1) * T::from(n as i32)
-    }
-}
+// /// Calculate factorial (memoised)
+// #[memoise::memoise(n)]
+// pub fn fact_memo<T>(n: usize) -> T
+// where
+//     T: Mul<Output = T> + From<i32> + Clone,
+// {
+//     if n == 0 {
+//         T::from(1 as i32)
+//     } else {
+//         fact_memo::<T>(n - 1) * T::from(n as i32)
+//     }
+// }
 
-/// number of k-combinations using factorial table
-pub fn comb_memo<T: Mul<Output = T> + Div<Output = T> + From<i32> + Clone>(
-    n: usize,
-    k: usize,
-) -> T {
-    if n < k {
-        0.into()
-    } else {
-        fact_memo::<T>(n) / (fact_memo::<T>(k) * fact_memo::<T>(n - k))
-    }
-}
+// /// number of k-combinations using factorial table
+// pub fn comb_memo<T: Mul<Output = T> + Div<Output = T> + From<i32> + Clone>(
+//     n: usize,
+//     k: usize,
+// ) -> T {
+//     if n < k {
+//         0.into()
+//     } else {
+//         fact_memo::<T>(n) / (fact_memo::<T>(k) * fact_memo::<T>(n - k))
+//     }
+// }
 
-/// Calculate k-multicombination using factorial table
-pub fn multicomb_memo<T: Mul<Output = T> + Div<Output = T> + From<i32> + Clone>(
-    n: usize,
-    k: usize,
-) -> T {
-    comb_memo::<T>(n + k - 1, k)
-}
+// /// Calculate k-multicombination using factorial table
+// pub fn multicomb_memo<T: Mul<Output = T> + Div<Output = T> + From<i32> + Clone>(
+//     n: usize,
+//     k: usize,
+// ) -> T {
+//     comb_memo::<T>(n + k - 1, k)
+// }
 
 /// O(log m).
 /// Calculate `a.pow(b) % m`
